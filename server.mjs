@@ -134,8 +134,9 @@ function callTool(name, args = {}, ctx = {}) {
           cards: list.map((p) => ({
             id: p.id, displayName: p.displayName, ageLabel: p.ageLabel, location: p.location,
             headline: p.headline, tags: p.tags,
-            anthem: `${p.anthem.title} — ${p.anthem.artist} (${p.anthem.vibe}, ${p.anthem.bpm} bpm)`,
-            project: p.project.title,
+          anthem: `${p.anthem.title} — ${p.anthem.artist} (${p.anthem.vibe}, ${p.anthem.bpm} bpm)`,
+          project: p.project.title,
+          icebreaker: p.opener,
           })),
         },
       });

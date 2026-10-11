@@ -43,6 +43,25 @@
   .orb.speaking { animation: speakpulse .7s ease-in-out infinite; }
   @keyframes speakpulse { 0%,100% { transform: scale(1.02); } 50% { transform: scale(1.08); } }
   .mast h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 6vw, 52px); line-height: 1.06; margin: 10px 0 0; letter-spacing: -0.01em; }
+  .mast .orb { width: 46px; height: 46px; }
+  .mast .orb::after { inset: 15px; }
+  .hero { font-family: var(--display); font-weight: 400; font-size: clamp(40px, 7.4vw, 62px); line-height: 1.03; margin: 20px 0 0; letter-spacing: -0.01em; }
+  .lede { margin: 14px 0 0; color: var(--quiet); font-size: 16px; max-width: 42ch; line-height: 1.7; }
+  .itoggle { display: flex; gap: 8px; margin: 22px 0 0; }
+  .itoggle button { font: inherit; font-size: 14px; font-weight: 700; background: transparent; color: var(--quiet); border: 1px solid var(--line); border-radius: 999px; padding: 8px 20px; cursor: pointer; }
+  .itoggle button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .itoggle button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+  .people { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 16px 0 0; }
+  .person { text-align: left; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 14px 14px 16px; cursor: pointer; }
+  .person:hover, .person:focus-visible { border-color: var(--red); outline: none; }
+  .portrait { width: 100%; height: auto; aspect-ratio: 1; border-radius: 16px; display: block; }
+  .person h3 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 10px 0 2px; }
+  .person .panthem { font-size: 13px; color: var(--quiet); margin: 0; }
+  .person .ice { font-family: var(--display); font-style: italic; font-size: 15px; line-height: 1.45; margin: 10px 0 0; }
+  .cta { display: block; width: 100%; margin: 20px 0 0; background: var(--red); color: #fff; border: 0; border-radius: 32px; padding: 17px; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer; }
+  .cta:hover, .cta:focus-visible { background: var(--red-deep); outline: none; }
+  .voicehint { text-align: center; color: var(--quiet); font-size: 13.5px; margin: 10px 0 0; }
+  .soft { color: var(--quiet); font-size: 14px; }
   .issue { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--quiet); }
   .issue b { color: var(--red); font-weight: 700; }
   .mast p { margin: 12px 0 0; color: var(--quiet); font-size: 15px; max-width: 44ch; line-height: 1.7; }
@@ -127,12 +146,17 @@
 <div class="wrap">
   <div class="mast">
     <div class="orb" id="orb" aria-hidden="true"></div>
-    <div>
-      <div class="issue">The morning listening paper · <b>Daily</b> · Simulated Alexa+ edition</div>
-      <h1>Meet the person behind the playlist.</h1>
-      <p>A morning paper for playlist people. Three fictional music lovers a day, introduced slowly — a few words out loud, the full story on this page.</p>
-    </div>
+    <div class="issue">The morning listening paper · <b>Daily</b> · Simulated Alexa+ edition</div>
   </div>
+  <h1 class="hero">Some people just get your playlist.</h1>
+  <p class="lede">Meet the person behind the playlist. Three fictional music lovers, introduced slowly — take your time, they’re not going anywhere.</p>
+  <div class="itoggle" role="group" aria-label="Intention">
+    <button type="button" data-hero-int="friend" aria-pressed="true">Friend</button>
+    <button type="button" data-hero-int="lover" aria-pressed="false">Lover</button>
+  </div>
+  <div class="people" id="people" aria-live="polite"></div>
+  <button class="cta" id="cta" type="button">Meet your music people</button>
+  <p class="voicehint">Prefer voice? Tap the microphone below and just talk — I’m listening.</p>
   <div class="corner" id="mePill">Your corner is empty — say “set up my profile”.</div>
 
   <ol id="setlist" aria-live="polite"></ol>
@@ -450,6 +474,49 @@ document.getElementById('speak').onclick = function () {
   r.onend = function () { orbState(null); if (nowEl.textContent.indexOf('spinning') !== 0) nowEl.textContent = ''; };
   try { r.start(); } catch (e) { orbState(null); }
 };
+var peopleEl = document.getElementById('people');
+/* Original abstract portraits — one motif per person, no photos, no stock. */
+var PORTRAITS = {
+  'demo-mika': '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="16" fill="#E7EBD8"/><path d="M8 72 C 30 68, 34 44, 52 42 S 78 30, 88 20" stroke="#7A8B5F" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="66" cy="26" r="11" fill="#FF3200"/><circle cx="30" cy="60" r="4" fill="#7A8B5F"/></svg>',
+  'demo-jules': '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="16" fill="#E4E0F7"/><path d="M10 20 C 40 20, 40 76, 86 76" stroke="#5B4BC4" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M10 48 C 45 48, 50 30, 86 30" stroke="#FF3200" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="10" cy="20" r="4" fill="#5B4BC4"/><circle cx="86" cy="76" r="4" fill="#5B4BC4"/></svg>',
+  'demo-noah': '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="16" fill="#F0E2CC"/><line x1="18" y1="28" x2="60" y2="28" stroke="#B98A2F" stroke-width="4" stroke-linecap="round"/><line x1="18" y1="42" x2="52" y2="42" stroke="#B98A2F" stroke-width="4" stroke-linecap="round"/><circle cx="64" cy="62" r="15" stroke="#B98A2F" stroke-width="5" fill="none"/><circle cx="64" cy="62" r="4" fill="#FF3200"/></svg>',
+  'demo-robin': '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="16" fill="#F3D9CE"/><circle cx="48" cy="48" r="30" stroke="#C96F4A" stroke-width="4" fill="none"/><circle cx="48" cy="48" r="20" stroke="#C96F4A" stroke-width="3" fill="none"/><circle cx="48" cy="48" r="6" fill="#FF3200"/></svg>'
+};
+function renderHero(cards) {
+  peopleEl.innerHTML = '';
+  cards.forEach(function (p) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'person';
+    b.innerHTML = (PORTRAITS[p.id] || PORTRAITS['demo-mika']) +
+      '<h3>' + esc(p.displayName) + '</h3><p class="panthem">🎵 ' + esc(p.anthem) + '</p>' +
+      '<p class="ice">“' + esc(p.icebreaker || p.headline) + '”</p>';
+    b.onclick = function () {
+      input.value = 'Tell me about ' + p.displayName; send();
+      document.getElementById('setlist').scrollIntoView();
+    };
+    peopleEl.appendChild(b);
+  });
+}
+function refreshToggle() {
+  Array.prototype.forEach.call(document.querySelectorAll('[data-hero-int]'), function (b) {
+    b.setAttribute('aria-pressed', b.getAttribute('data-hero-int') === ctxIntention ? 'true' : 'false');
+  });
+}
+function loadHero() {
+  peopleEl.innerHTML = '<p class="soft">Brewing today’s people…</p>';
+  callTool('get_daily_brief', { intention: ctxIntention }).then(function (data) {
+    renderHero((data.screen && data.screen.cards) || []);
+    refreshToggle();
+  }).catch(function () { peopleEl.innerHTML = '<p class="soft">The kettle boiled dry — reload to try again.</p>'; });
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-hero-int]'), function (b) {
+  b.onclick = function () { ctxIntention = b.getAttribute('data-hero-int'); loadHero(); };
+});
+document.getElementById('cta').onclick = function () {
+  input.value = 'Brew my ' + ctxIntention + ' listening brief';
+  send();
+  document.getElementById('setlist').scrollIntoView();
+};
 var chips = ['Brew my friend brief', 'Tell me about Mika', 'Show Mika’s full card', 'Set up my profile', 'Play something mellow'];
 document.getElementById('chips').innerHTML = chips.map(function (c) { return '<button type="button">' + esc(c) + '</button>'; }).join('');
 Array.prototype.forEach.call(document.querySelectorAll('#chips button'), function (b) {
@@ -457,6 +524,7 @@ Array.prototype.forEach.call(document.querySelectorAll('#chips button'), functio
 });
 
 mcp('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'alexa-simulator', version: '0.2.0' } }).then(function () {
+  loadHero();
   sayAlexa('Morning. Kettle’s on, no rush. I’m Alexa — whenever you’re ready, I’ll introduce <b>three fictional music lovers</b>. A few words out loud, the full story on this page, and nothing moves unless you say so twice.',
     'Morning. No rush. Say brew my friend brief whenever you’re ready.', 'voice');
 }).catch(function (e) { logTrace('initialize failed', String(e)); });
