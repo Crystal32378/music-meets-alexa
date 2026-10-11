@@ -70,7 +70,12 @@ try {
   check('step 2 without step 1 refused (CONFIRM_ORDER)', skip.error === 'CONFIRM_ORDER' && !skip.saved);
 
   const mood = await call(session, 'recommend_tracks_for_mood', { mood: 'warm' });
-  check('mood tracks', mood.tracks?.length === 2);
+  check('mood tracks (warm ≥ 2)', (mood.tracks || []).length >= 2);
+
+  const theo = await call(session, 'get_profile_detail', { profileId: 'demo-theo', full: true });
+  check('six-person cast (Theo full card)', theo.view === 'full' && theo.screen?.profile?.displayName === 'Theo');
+  const renLover = await call(session, 'explain_match', { profileId: 'demo-ren', intention: 'lover' });
+  check('Ren open to lover', renLover.eligible === true);
 
   const match = await call(session, 'explain_match', { profileId: 'demo-robin', intention: 'friend' });
   check('ineligible intention handled', match.eligible === false);

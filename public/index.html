@@ -54,7 +54,8 @@
   .people { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 16px 0 0; }
   .person { text-align: left; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 14px 14px 16px; cursor: pointer; }
   .person:hover, .person:focus-visible { border-color: var(--red); outline: none; }
-  .portrait { width: 100%; height: auto; aspect-ratio: 1; border-radius: 16px; display: block; }
+  .portrait { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 16px; display: block; background: var(--line); }
+  .portrait.wide { aspect-ratio: 16/10; }
   .person h3 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 10px 0 2px; }
   .person .panthem { font-size: 13px; color: var(--quiet); margin: 0; }
   .person .ice { font-family: var(--display); font-style: italic; font-size: 15px; line-height: 1.45; margin: 10px 0 0; }
@@ -335,7 +336,7 @@ function handleSetup(text) {
 }
 
 function sleeveHtml(p) {
-  return '<div class="drop">' + esc(p.displayName.slice(0, 1)) + '</div><h3>' + esc(p.displayName) + '</h3>' +
+  return portraitImg(p) + '<h3>' + esc(p.displayName) + '</h3>' +
     '<p>' + esc(p.headline) + '</p><p class="anthem">🎵 ' + esc(p.anthem) + '</p>' +
     '<div>' + p.tags.map(function (x) { return '<span class="tag">' + esc(x) + '</span>'; }).join('') + '</div>';
 }
@@ -372,7 +373,7 @@ function handle(text) {
       var body = sayAlexa('<b>' + esc(p.displayName) + '’s sleeve notes</b>', data.voice, 'screen');
       var div = document.createElement('div');
       div.className = 'detail fullcard';
-      div.innerHTML = '<h3>' + esc(p.displayName) + '</h3><div class="meta">' + esc(p.ageLabel) + ' · ' + esc(p.location) + '</div>' +
+      div.innerHTML = portraitImg(p, true) + '<h3>' + esc(p.displayName) + '</h3><div class="meta">' + esc(p.ageLabel) + ' · ' + esc(p.location) + '</div>' +
         '<p>' + esc(p.introduction) + '</p>' +
         '<p>🎵 Anthem: <b>' + esc(p.anthem.title) + '</b> — ' + esc(p.anthem.artist) + ' (' + esc(p.anthem.vibe) + ', ' + p.anthem.bpm + ' bpm)</p>' +
         '<p>📓 Ritual: <b>' + esc(p.ritual.title) + '</b> — ' + esc(p.ritual.detail) + '</p>' +
@@ -475,19 +476,21 @@ document.getElementById('speak').onclick = function () {
   try { r.start(); } catch (e) { orbState(null); }
 };
 var peopleEl = document.getElementById('people');
-/* Original abstract portraits — one motif per person, no photos, no stock. */
-var PORTRAITS = {
-  'demo-mika': '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="16" fill="#E7EBD8"/><path d="M8 72 C 30 68, 34 44, 52 42 S 78 30, 88 20" stroke="#7A8B5F" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="66" cy="26" r="11" fill="#FF3200"/><circle cx="30" cy="60" r="4" fill="#7A8B5F"/></svg>',
-  'demo-jules': '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="16" fill="#E4E0F7"/><path d="M10 20 C 40 20, 40 76, 86 76" stroke="#5B4BC4" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M10 48 C 45 48, 50 30, 86 30" stroke="#FF3200" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="10" cy="20" r="4" fill="#5B4BC4"/><circle cx="86" cy="76" r="4" fill="#5B4BC4"/></svg>',
-  'demo-noah': '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="16" fill="#F0E2CC"/><line x1="18" y1="28" x2="60" y2="28" stroke="#B98A2F" stroke-width="4" stroke-linecap="round"/><line x1="18" y1="42" x2="52" y2="42" stroke="#B98A2F" stroke-width="4" stroke-linecap="round"/><circle cx="64" cy="62" r="15" stroke="#B98A2F" stroke-width="5" fill="none"/><circle cx="64" cy="62" r="4" fill="#FF3200"/></svg>',
-  'demo-robin': '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="16" fill="#F3D9CE"/><circle cx="48" cy="48" r="30" stroke="#C96F4A" stroke-width="4" fill="none"/><circle cx="48" cy="48" r="20" stroke="#C96F4A" stroke-width="3" fill="none"/><circle cx="48" cy="48" r="6" fill="#FF3200"/></svg>'
+/* AI-illustrated portraits — fictional adults, generated for this demo. */
+var PHOTOS = {
+  'demo-mika': 'mika.png', 'demo-jules': 'jules.png', 'demo-noah': 'noah.png',
+  'demo-robin': 'robin.png', 'demo-theo': 'theo.png', 'demo-ren': 'ren.png'
 };
+function portraitImg(p, wide) {
+  var file = PHOTOS[p.id] || 'mika.png';
+  return '<img class="portrait' + (wide ? ' wide' : '') + '" src="/assets/' + file + '" alt="Illustrated portrait of ' + esc(p.displayName) + ', a fictional adult" loading="lazy">';
+}
 function renderHero(cards) {
   peopleEl.innerHTML = '';
   cards.forEach(function (p) {
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'person';
-    b.innerHTML = (PORTRAITS[p.id] || PORTRAITS['demo-mika']) +
+    b.innerHTML = portraitImg(p) +
       '<h3>' + esc(p.displayName) + '</h3><p class="panthem">🎵 ' + esc(p.anthem) + '</p>' +
       '<p class="ice">“' + esc(p.icebreaker || p.headline) + '”</p>';
     b.onclick = function () {

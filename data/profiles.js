@@ -65,6 +65,36 @@ export const profiles = [
     project: { title: 'Weekend Almanac', detail: 'A small collection of creative rituals to make weekends feel a little longer.' },
     opener: 'Weekend Almanac — which track would you put on Saturday morning, side A?',
   },
+  {
+    id: 'demo-theo',
+    displayName: 'Theo',
+    ageLabel: 'Fictional adult · 31',
+    location: 'Taipei · local weekends',
+    headline: 'Golden hour, every hour.',
+    introduction:
+      'Film photographer chasing dawn light at empty stations. Indie folk on the walk there, silence on the way back.',
+    intentions: ['friend'],
+    tags: ['Indie folk', 'Film photos', 'Slow trains'],
+    anthem: { title: 'Cardigan Weather', artist: 'Theo Woolwind', vibe: 'warm', bpm: 86 },
+    ritual: { title: 'One roll of film a month', detail: 'Thirty-six frames, no previews, developed slowly like everything else.' },
+    project: { title: 'Platform Light', detail: 'Dawn photos of empty train stations, each paired with the song playing that morning.' },
+    opener: 'Platform Light feels like an album cover already. Which station would you shoot first?',
+  },
+  {
+    id: 'demo-ren',
+    displayName: 'Ren',
+    ageLabel: 'Fictional adult · 27',
+    location: 'Taipei · out late',
+    headline: 'Night rides, bright noodles.',
+    introduction:
+      'Midnight cyclist mapping the city one ramen bowl at a time. City pop loud enough to outrun the traffic lights.',
+    intentions: ['friend', 'lover'],
+    tags: ['City pop', 'Night cycling', 'Ramen maps'],
+    anthem: { title: 'Neon Bell', artist: 'Ren Paperlane', vibe: 'groovy', bpm: 102 },
+    ritual: { title: 'Midnight cycling loop', detail: 'Same river, different playlist every Friday. New bowl after every tenth ride.' },
+    project: { title: 'Ramen Atlas', detail: 'A hand-drawn map of late-night ramen, each shop rated by broth and by backing track.' },
+    opener: 'Ramen Atlas — which bowl gets the opening track?',
+  },
 ];
 
 // Original, royalty-free demo catalog. Each "previewTone" is a WebAudio recipe
@@ -79,11 +109,22 @@ export const tracks = [
   { id: 't-sunday', title: 'Unfinished Sunday', artist: 'Patchbay Choir', mood: 'dreamy', bpm: 104, previewTone: [440, 523.25, 659.25] },
   { id: 't-paper', title: 'Paper Cup Waltz', artist: 'Noah Paperbound', mood: 'warm', bpm: 90, previewTone: [392, 493.88, 587.33] },
   { id: 't-clay', title: 'Clay & Chorus', artist: 'Robin Claytone', mood: 'groovy', bpm: 98, previewTone: [311.13, 392, 466.16] },
+  { id: 't-cardigan', title: 'Cardigan Weather', artist: 'Theo Woolwind', mood: 'warm', bpm: 86, previewTone: [329.63, 415.3, 493.88] },
+  { id: 't-neon', title: 'Neon Bell', artist: 'Ren Paperlane', mood: 'groovy', bpm: 102, previewTone: [466.16, 523.25, 622.25] },
 ];
 
-export function briefByIntention(intention) {
-  const ids = intention === 'lover' ? ['demo-mika', 'demo-jules', 'demo-robin'] : ['demo-mika', 'demo-jules', 'demo-noah'];
-  return ids.map((id) => profiles.find((p) => p.id === id));
+export function briefByIntention(intention, daySeed) {
+  const pool =
+    intention === 'lover'
+      ? ['demo-mika', 'demo-jules', 'demo-robin', 'demo-ren']
+      : ['demo-mika', 'demo-jules', 'demo-noah', 'demo-theo', 'demo-ren'];
+  // A real Daily Brief rotates: deterministic offset from the date, so the
+  // same day always brews the same three, and tomorrow brings new faces.
+  const seed = daySeed || new Date().toISOString().slice(0, 10);
+  let h = 0;
+  for (const c of seed) h = (h * 31 + c.codePointAt(0)) % 997;
+  const start = h % pool.length;
+  return pool.map((_, i) => profiles.find((p) => p.id === pool[(start + i) % pool.length]));
 }
 
 export function explainMatch(profile, intention) {

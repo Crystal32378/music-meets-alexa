@@ -339,7 +339,7 @@ const server = http.createServer((req, res) => {
     if (!fp.startsWith(path.join(__dirname, 'public'))) return sendJson(res, 403, { error: 'forbidden' });
     fs.readFile(fp, (e, data) => {
       if (e) return sendJson(res, 404, { error: 'not found. Try / for the Alexa+ simulator or POST /mcp.' });
-      const type = fp.endsWith('.html') ? 'text/html' : fp.endsWith('.js') ? 'text/javascript' : fp.endsWith('.css') ? 'text/css' : 'application/octet-stream';
+      const type = fp.endsWith('.html') ? 'text/html' : fp.endsWith('.js') ? 'text/javascript' : fp.endsWith('.css') ? 'text/css' : fp.endsWith('.png') ? 'image/png' : fp.endsWith('.jpg') || fp.endsWith('.jpeg') ? 'image/jpeg' : fp.endsWith('.svg') ? 'image/svg+xml' : fp.endsWith('.webp') ? 'image/webp' : 'application/octet-stream';
       res.writeHead(200, { 'Content-Type': type });
       res.end(data);
     });
