@@ -245,7 +245,7 @@ var pickedVoice = null;
 function pickVoice() {
   try {
     var vs = speechSynthesis.getVoices() || [];
-    var prefs = ['Samantha', 'Google US English', 'Aria', 'Jenny', 'Microsoft Aria', 'Microsoft Jenny', 'Zira', 'Tessa', 'Karen', 'Moira', 'Fiona', 'Siri'];
+    var prefs = ['Sonia', 'Aria', 'Jenny', 'Samantha', 'Google US English', 'Microsoft Aria', 'Microsoft Jenny', 'Zira', 'Tessa', 'Karen', 'Moira', 'Fiona', 'Siri'];
     for (var i = 0; i < prefs.length; i++) {
       var f = vs.filter(function (v) { return v.lang && v.lang.indexOf('en-US') === 0 && v.name.indexOf(prefs[i]) !== -1; })[0];
       if (f) return f;
