@@ -26,7 +26,7 @@ const DRY = process.argv.includes('--dry-run');
 const LIMIT = Number((process.argv.find((a) => a.startsWith('--limit=')) || '=').split('=')[1] || Infinity);
 
 function voiceKey(tool, args, data) {
-  if (tool === 'get_daily_brief') return 'brief__' + args.intention;
+  if (tool === 'get_daily_brief') return 'brief__' + args.intention + '__' + (data && data.lineup != null ? data.lineup : 'x');
   if (tool === 'get_profile_detail') return 'profile__' + args.profileId + (args.full ? '__full' : '');
   if (tool === 'explain_match') return 'explain__' + args.profileId + '__' + args.intention;
   if (tool === 'propose_mixtape_opener') return 'mix__' + args.profileId + '__' + args.intention;
@@ -66,9 +66,19 @@ const lines = new Map(); // key -> text
 try {
   const init = await rpc('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'gen-voice', version: '0' } });
   const s = init.session;
+  // All daily rotations: friend has 5 lineups, lover 4. Walk day by day until
+  // every lineup's voice is captured, so pre-recorded audio never names
+  // yesterday's people.
   for (const intention of ['friend', 'lover']) {
-    const d = await call(s, 'get_daily_brief', { intention });
-    lines.set(voiceKey('get_daily_brief', { intention }, d), d.voice);
+    const seen = new Set();
+    const target = intention === 'lover' ? 4 : 5;
+    for (let day = 0; day < 60 && seen.size < target; day++) {
+      const dt = new Date(Date.UTC(2026, 9, 11) + day * 86400000).toISOString().slice(0, 10);
+      const args = { intention, daySeed: dt };
+      const d = await call(s, 'get_daily_brief', args);
+      if (!seen.has(d.lineup)) { seen.add(d.lineup); lines.set(voiceKey('get_daily_brief', args, d), d.voice); }
+    }
+    if (seen.size < target) throw new Error('only found ' + seen.size + '/' + target + ' ' + intention + ' lineups');
   }
   for (const p of profiles) {
     const teaser = await call(s, 'get_profile_detail', { profileId: p.id });
@@ -148,4 +158,10 @@ for (const [key, text] of entries) {
   process.stdout.write(`\r${ok}/${entries.length} ${file}   `);
 }
 fs.writeFileSync(path.join(AUDIO, 'manifest.json'), JSON.stringify({ voice: VOICE, engine: ENGINE, files: manifest }, null, 2));
+// Prune stale clips (e.g. pre-lineup brief MP3s) so the repo never ships
+// audio that names the wrong people.
+const keep = new Set(Object.values(manifest).map(String));
+for (const f of fs.readdirSync(AUDIO)) {
+  if (f.endsWith('.mp3') && !keep.has(f)) { fs.unlinkSync(path.join(AUDIO, f)); console.log('pruned stale ' + f); }
+}
 console.log(`\nDone: ${ok}/${entries.length} MP3s in public/audio (+manifest.json)`);

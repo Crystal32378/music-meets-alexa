@@ -18,7 +18,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { profiles, tracks, briefByIntention, explainMatch, mixtapeFor, AS_OF } from './data/profiles.js';
+import { profiles, tracks, briefByIntention, briefLineupIndex, explainMatch, mixtapeFor, AS_OF } from './data/profiles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8080);
@@ -41,12 +41,13 @@ function ledgerFor(sid) {
 const TOOLS = [
   {
     name: 'get_daily_brief',
-    description: 'Brew the Daily Listening Brief: 3 fictional adult profiles for a Friend or Lover intention. Voice gets first-names-only teaser; screen gets the cards.',
+    description: 'Brew the Daily Listening Brief: 3 fictional adult profiles for a Friend or Lover intention. The lineup rotates daily (see `lineup` in the response). Voice gets first-names-only teaser; screen gets the cards.',
     inputSchema: {
       type: 'object',
       properties: {
         intention: { type: 'string', enum: ['friend', 'lover'], description: 'Connection intention. Friend and Lover stay separate choices.' },
         limit: { type: 'number', description: 'Max profiles (default 3, max 4).' },
+        daySeed: { type: 'string', description: 'Demo utility: YYYY-MM-DD to preview a specific daily rotation (for pre-rendering voice lines). Defaults to today.' },
       },
       required: ['intention'],
     },
@@ -123,10 +124,12 @@ function callTool(name, args = {}, ctx = {}) {
   switch (name) {
     case 'get_daily_brief': {
       const intention = args.intention === 'lover' ? 'lover' : 'friend';
-      const list = briefByIntention(intention).slice(0, Math.min(Math.max(args.limit || 3, 1), 4));
+      const lineup = briefLineupIndex(intention, args.daySeed);
+      const list = briefByIntention(intention, args.daySeed).slice(0, Math.min(Math.max(args.limit || 3, 1), 4));
       return toolResult({
         asOf: AS_OF,
         intention,
+        lineup,
         engine: 'scripted-demo',
         note: 'Fictional adults · scripted Music Scout · real choices stay yours. 18+.',
         voice: `Here's your ${intention} listening brief. ${list.map((p) => `${p.displayName}, into ${p.tags[0]}`).join('; ')}. Say "tell me about" plus a name for a teaser.`,

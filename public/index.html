@@ -321,7 +321,7 @@ var lastVoiceKey = null;
 var audioManifest = null, lastAudio = null;
 fetch('/audio/manifest.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (m) { audioManifest = m && m.files ? m.files : null; }).catch(function () {});
 function voiceKey(tool, args, data) {
-  if (tool === 'get_daily_brief') return 'brief__' + args.intention;
+  if (tool === 'get_daily_brief') return 'brief__' + args.intention + '__' + (data && data.lineup != null ? data.lineup : 'x');
   if (tool === 'get_profile_detail') return 'profile__' + args.profileId + (args.full ? '__full' : '');
   if (tool === 'explain_match') return 'explain__' + args.profileId + '__' + args.intention;
   if (tool === 'propose_mixtape_opener') return 'mix__' + args.profileId + '__' + args.intention;

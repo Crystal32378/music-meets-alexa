@@ -113,17 +113,23 @@ export const tracks = [
   { id: 't-neon', owner: 'demo-ren', title: 'Neon Bell', artist: 'Ren Paperlane', mood: 'groovy', bpm: 102, previewTone: [466.16, 523.25, 622.25] },
 ];
 
+export function briefLineupIndex(intention, daySeed) {
+  const pool =
+    intention === 'lover'
+      ? ['demo-mika', 'demo-jules', 'demo-robin', 'demo-ren']
+      : ['demo-mika', 'demo-jules', 'demo-noah', 'demo-theo', 'demo-ren'];
+  const seed = daySeed || new Date().toISOString().slice(0, 10);
+  let h = 0;
+  for (const c of seed) h = (h * 31 + c.codePointAt(0)) % 997;
+  return h % pool.length;
+}
+
 export function briefByIntention(intention, daySeed) {
   const pool =
     intention === 'lover'
       ? ['demo-mika', 'demo-jules', 'demo-robin', 'demo-ren']
       : ['demo-mika', 'demo-jules', 'demo-noah', 'demo-theo', 'demo-ren'];
-  // A real Daily Brief rotates: deterministic offset from the date, so the
-  // same day always brews the same three, and tomorrow brings new faces.
-  const seed = daySeed || new Date().toISOString().slice(0, 10);
-  let h = 0;
-  for (const c of seed) h = (h * 31 + c.codePointAt(0)) % 997;
-  const start = h % pool.length;
+  const start = briefLineupIndex(intention, daySeed);
   return pool.map((_, i) => profiles.find((p) => p.id === pool[(start + i) % pool.length]));
 }
 
