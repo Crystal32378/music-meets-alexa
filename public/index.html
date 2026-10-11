@@ -274,7 +274,7 @@ function speak(text) {
   try {
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(String(text).slice(0, 220));
-    u.lang = (pickedVoice && pickedVoice.lang) || 'en-US'; u.rate = 0.95; u.pitch = 1;
+    u.lang = (pickedVoice && pickedVoice.lang) || 'en-US'; u.rate = 0.88; u.pitch = 0.9; /* unhurried, like a friend — not a meeting */
     if (pickedVoice) u.voice = pickedVoice;
     u.onstart = function () { orbState('speaking'); };
     speechSynthesis.speak(u);
