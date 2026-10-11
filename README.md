@@ -21,7 +21,15 @@ Say *"Alexa, brew my mixtape brief"* and meet three fictional music lovers. Frie
 npm start
 # MCP:  http://localhost:8080/mcp
 # Sim:  http://localhost:8080/
+npm run test:mcp   # spawns a test server, 14 checks, exits non-zero on failure
 ```
+
+## Live demo for judges (Render, free tier)
+
+`render.yaml` is a one-click Blueprint: Render Dashboard → New → Blueprint → pick this repo → Apply.
+You get `https://music-meets-alexa.onrender.com` (simulator at `/`, MCP at `/mcp`, health at `/health`).
+Note: free instances sleep when idle, so the first cold load takes ~50s — say so in the demo video.
+Static GitHub Pages can't host this (it needs the Node MCP server), so Render is the demo URL.
 
 ```sh
 # health
@@ -57,6 +65,11 @@ plus **`screen`** (rich detail for the private screen, never read out in full):
 A speaker sits in a shared room, so discovery happens in two layers:
 _teaser on the speaker, full card on the private screen, and only when asked._
 Your opt-in music profile (name, 18+, intentions, moods) lives **only in the browser's localStorage** — the server receives an attestation flag, never your name.
+Saving takes two explicit yeses, and the server enforces the order per session
+(step 1 must precede step 2; unchosen intentions are refused server-side).
+
+Honest scope: this is **demo-grade consent enforcement** — a session-bound ledger,
+not production identity verification. Fine for fictional profiles; we don't claim more.
 
 ## What we reused vs. built (Oct 11–23 window)
 

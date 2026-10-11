@@ -20,7 +20,16 @@ async function rpc(method, params = {}, session) {
 const call = (s, name, args) => rpc('tools/call', { name, arguments: args }, s).then(({ json }) => JSON.parse(json.result.content[0].text));
 
 const server = spawn('node', ['server.mjs'], { env: { ...process.env, PORT: String(PORT) }, stdio: 'ignore' });
-await new Promise((r) => setTimeout(r, 1200));
+// Poll /health instead of a fixed sleep — survives slow CI boxes (大G couldn't run it locally once).
+let ready = false;
+for (let i = 0; i < 50; i++) {
+  try {
+    const r = await fetch(`${BASE}/health`);
+    if (r.ok) { ready = true; break; }
+  } catch {}
+  await new Promise((r) => setTimeout(r, 200));
+}
+if (!ready) { console.log('FAIL  server never became healthy'); server.kill(); process.exit(1); }
 
 try {
   const h = await (await fetch(`${BASE}/health`)).json();
@@ -50,6 +59,15 @@ try {
 
   const step2 = await call(session, 'save_interest', { profileId: 'demo-mika', intention: 'friend', profileConfirmed: true, confirmed: true });
   check('save step 2 stores Pending', step2.saved === true && step2.state === 'pending');
+
+  const noahLover = await call(session, 'save_interest', { profileId: 'demo-noah', intention: 'lover', profileConfirmed: true });
+  check('save refused for unchosen intention (Noah is friend-only)', noahLover.eligible === false && !noahLover.saved);
+
+  // Fresh session, jump straight to step 2: server must enforce the order.
+  const init2 = await rpc('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'smoke2', version: '0' } });
+  const session2 = init2.res.headers.get('mcp-session-id');
+  const skip = await call(session2, 'save_interest', { profileId: 'demo-jules', intention: 'friend', profileConfirmed: true, confirmed: true });
+  check('step 2 without step 1 refused (CONFIRM_ORDER)', skip.error === 'CONFIRM_ORDER' && !skip.saved);
 
   const mood = await call(session, 'recommend_tracks_for_mood', { mood: 'warm' });
   check('mood tracks', mood.tracks?.length === 2);

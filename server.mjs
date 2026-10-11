@@ -28,6 +28,16 @@ const SPEC = '2025-11-25';
 const interests = [];
 const sessions = new Map(); // sessionId -> createdAt
 
+// Session-bound consent ledger (demo-grade, not production identity):
+// step 1 (profileConfirmed) must precede step 2 (confirmed) within the same
+// session, and the server — not just the client — enforces the order.
+const ledgers = new Map(); // sessionId -> { attested: boolean, pending: Map<key, number> }
+function ledgerFor(sid) {
+  const key = sid || 'stateless';
+  if (!ledgers.has(key)) ledgers.set(key, { attested: false, pending: new Map() });
+  return ledgers.get(key);
+}
+
 const TOOLS = [
   {
     name: 'get_daily_brief',
@@ -88,7 +98,7 @@ const TOOLS = [
   },
   {
     name: 'save_interest',
-    description: 'Two-step consent save. Step 1 (profileConfirmed:true) returns a confirmation summary. Step 2 (confirmed:true) stores Pending. Without an opt-in profile attestation it refuses with needProfile:true. Demo: nobody is contacted, ever.',
+    description: 'Two-step consent save, enforced server-side per session. Step 1 (profileConfirmed:true) records a pending confirmation; step 2 (confirmed:true) only succeeds after step 1. Refuses without opt-in attestation and for intentions the person never chose. Demo: nobody is contacted, ever.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -109,7 +119,7 @@ function toolError(msg) {
   return { content: [{ type: 'text', text: msg }], isError: true };
 }
 
-function callTool(name, args = {}) {
+function callTool(name, args = {}, ctx = {}) {
   switch (name) {
     case 'get_daily_brief': {
       const intention = args.intention === 'lover' ? 'lover' : 'friend';
@@ -187,19 +197,36 @@ function callTool(name, args = {}) {
       const p = profiles.find((x) => x.id === args.profileId);
       if (!p) return toolError(`Unknown profileId "${args.profileId}".`);
       const intention = args.intention === 'lover' ? 'lover' : 'friend';
-      if (!args.profileConfirmed) {
+      if (!p.intentions.includes(intention)) {
+        return toolResult({
+          saved: false, eligible: false, targetId: p.id, intention,
+          voice: `${p.displayName} isn't open to ${intention} here — ${p.displayName} chose ${p.intentions.join(' and ')} only. Try another person or intention.`,
+        });
+      }
+      const led = ledgerFor(ctx.sessionId);
+      if (args.profileConfirmed) led.attested = true;
+      if (!led.attested) {
         return toolResult({
           saved: false, needProfile: true,
           voice: `Before I save anything, I need your opt-in music profile — your name, 18-plus confirmation, and what you're open to. It lives on your device; I never see the details. Say "set up my profile".`,
         });
       }
+      const key = `${p.id}:${intention}`;
       if (!args.confirmed) {
+        led.pending.set(key, Date.now());
         return toolResult({
           saved: false, confirmRequired: true, targetId: p.id, intention,
           summary: `${intention === 'friend' ? 'Friend' : 'Lover'} interest in ${p.displayName}. Stays Pending until they independently say yes. No contact info is shared.`,
           voice: `Save a ${intention} interest in ${p.displayName}? It stays Pending until they say yes too. Nobody is contacted. Say "yes, save it" to confirm.`,
         });
       }
+      if (!led.pending.has(key)) {
+        return toolResult({
+          saved: false, error: 'CONFIRM_ORDER',
+          voice: `Let's do this in order — hear the summary first. Ask me to save a ${intention} interest in ${p.displayName}, then say yes.`,
+        });
+      }
+      led.pending.delete(key);
       const rec = { id: `in-${Date.now()}`, targetId: p.id, intention, state: 'pending', simulated: true, createdAt: new Date().toISOString() };
       interests.push(rec);
       return toolResult({
@@ -244,7 +271,7 @@ function handleRpc(msg, req) {
     case 'tools/call': {
       const { name, arguments: args } = params;
       if (!name) return rpcError(id, -32602, 'Missing tool name.');
-      return { jsonrpc: '2.0', id, result: callTool(name, args || {}) };
+      return { jsonrpc: '2.0', id, result: callTool(name, args || {}, { sessionId: req.headers['mcp-session-id'] || null }) };
     }
     case 'resources/list':
       return { jsonrpc: '2.0', id, result: { resources: [] } };
