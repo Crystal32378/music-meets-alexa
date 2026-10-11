@@ -28,10 +28,10 @@
     content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .05;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 72px; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 48px 20px 88px; }
 
-  /* masthead */
-  .mast { display: flex; gap: 18px; align-items: center; margin-bottom: 8px; }
+  /* masthead: a magazine cover, not a landing page */
+  .mast { display: flex; gap: 20px; align-items: center; margin-bottom: 8px; }
   .orb { flex: none; width: 76px; height: 76px; border-radius: 50%; position: relative;
     background: conic-gradient(from 20deg, var(--red), #ff8a3d, var(--red-deep), #7a1e00, var(--red));
     animation: breathe 5s ease-in-out infinite;
@@ -42,23 +42,27 @@
   @keyframes listen { 0%,100% { transform: scale(1); } 50% { transform: scale(1.09); } }
   .orb.speaking { animation: speakpulse .7s ease-in-out infinite; }
   @keyframes speakpulse { 0%,100% { transform: scale(1.02); } 50% { transform: scale(1.08); } }
-  .mast h1 { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 5.4vw, 44px); line-height: 1.08; margin: 0; letter-spacing: -0.01em; }
-  .mast p { margin: 8px 0 0; color: var(--quiet); font-size: 15px; max-width: 46ch; }
+  .mast h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 6vw, 52px); line-height: 1.06; margin: 10px 0 0; letter-spacing: -0.01em; }
+  .issue { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--quiet); }
+  .issue b { color: var(--red); font-weight: 700; }
+  .mast p { margin: 12px 0 0; color: var(--quiet); font-size: 15px; max-width: 44ch; line-height: 1.7; }
   .corner { margin: 14px 0 0; padding: 10px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); font-size: 13.5px; color: var(--quiet); }
   .corner b { color: var(--ink); font-weight: 700; }
 
   /* the morning's setlist: every Alexa line is a track in order */
-  #setlist { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; }
-  #setlist > li { display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 16px 0; border-top: 1px solid var(--line); }
+  #setlist { list-style: none; margin: 40px 0 0; padding: 0; display: flex; flex-direction: column; }
+  #setlist > li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 26px 0; border-top: 1px solid var(--line); }
   #setlist > li:last-child { border-bottom: 1px solid var(--line); }
   .no { font-family: var(--display); font-size: 17px; color: var(--red); padding-top: 2px; }
   .line { font-size: 17px; line-height: 1.55; }
   .heard, .priv { display: inline-block; font-size: 12px; padding: 1px 10px; border-radius: 999px; margin-bottom: 8px; }
   .heard { color: var(--red); border: 1px solid #ff320066; background: #ff32000d; }
   .priv { color: #fff; background: var(--ink); border: 1px solid var(--ink); }
-  .detail { margin-top: 10px; padding-left: 14px; border-left: 2px solid var(--red); color: var(--ink); font-size: 15px; }
-  .detail p { margin: 6px 0; }
+  .detail { margin-top: 14px; padding-left: 16px; border-left: 2px solid var(--red); color: var(--ink); font-size: 15px; }
+  .detail p { margin: 8px 0; }
   .detail .soft { color: var(--quiet); font-size: 14px; }
+  .pullquote { font-family: var(--display); font-style: italic; font-size: 22px; line-height: 1.45; margin: 18px 0 6px; max-width: 34ch; }
+  .pullquote::before { content: "“"; color: var(--red); }
   .request { grid-column: 1 / -1; justify-self: end; max-width: 80%; font-family: var(--display); font-style: italic; font-size: 18px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 4px 24px 24px 24px; padding: 10px 18px; }
 
   /* sleeves: people */
@@ -124,8 +128,9 @@
   <div class="mast">
     <div class="orb" id="orb" aria-hidden="true"></div>
     <div>
+      <div class="issue">The morning listening paper · <b>Daily</b> · Simulated Alexa+ edition</div>
       <h1>Meet the person behind the playlist.</h1>
-      <p>Music Meets Alexa, a simulated Alexa+ morning. Say the word and I introduce three fictional music lovers. Teasers out loud, full cards on this screen only.</p>
+      <p>A morning paper for playlist people. Three fictional music lovers a day, introduced slowly — a few words out loud, the full story on this page.</p>
     </div>
   </div>
   <div class="corner" id="mePill">Your corner is empty — say “set up my profile”.</div>
@@ -146,6 +151,7 @@
     Everyone and every track here is fictional. Previews are synthesized in your browser with WebAudio, so no copyrighted audio ships.
     Lines marked “heard in the room” are the only words spoken aloud. Lines marked “only on this screen” stay off the speaker.
     Your opt-in profile never leaves this browser. Saved interests rest at Pending. Nobody is contacted.
+    <br>Set in Bely Display and Futura PT · Printed on the web · Take your time.
   </footer>
 </div>
 
@@ -250,8 +256,8 @@ function preview(t, row) {
 
 function startSetup() {
   setupFlow = { step: 0, draft: {} };
-  sayAlexa('Let’s set your corner. <b>What should I call you?</b> A first name is plenty — it stays in this browser and I never send it anywhere.',
-    'Let’s set up your music profile. What should I call you?', 'voice');
+  sayAlexa('Your corner, your pace. <b>What should I call you?</b> A first name is plenty — it stays in this browser; nothing travels anywhere.',
+    'Take your time. What should I call you?', 'voice');
 }
 function handleSetup(text) {
   var t = text.toLowerCase().trim(), d = setupFlow.draft;
@@ -372,13 +378,17 @@ function handle(text) {
       var div = document.createElement('div');
       div.className = 'detail';
       div.innerHTML = '<p>① ' + esc(m.reasons[0]) + '</p><p>② ' + esc(m.reasons[1]) + '</p>' +
-        '<p class="soft">Room for discovery: ' + esc(m.uncertainty) + '</p><p>Opener: “' + esc(m.opener) + '”</p>';
+        '<p class="soft">Room for discovery: ' + esc(m.uncertainty) + '</p><p class="pullquote">“' + esc(m.opener) + '”</p>';
       body.appendChild(div);
     }).catch(fail);
   }
   if (who && /opener|mixtape.*for|make.*mix/.test(t)) {
     return callTool('propose_mixtape_opener', { profileId: 'demo-' + who, intention: ctxIntention }).then(function (data) {
-      var body = sayAlexa('🎁 <b>' + esc(data.title) + '</b><br><span class="soft">' + esc(data.note) + '</span><br>Opener: “' + esc(data.opener) + '”', data.voice, 'voice');
+      var body = sayAlexa('<b>' + esc(data.title) + '</b><br><span class="soft">' + esc(data.note) + '</span>', data.voice, 'voice');
+      var pq = document.createElement('p');
+      pq.className = 'pullquote';
+      pq.textContent = '“' + data.opener + '”';
+      body.appendChild(pq);
       var div = document.createElement('div');
       div.className = 'spins';
       div.innerHTML = data.screen.tracks.map(spinRowHtml).join('');
@@ -447,8 +457,8 @@ Array.prototype.forEach.call(document.querySelectorAll('#chips button'), functio
 });
 
 mcp('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'alexa-simulator', version: '0.2.0' } }).then(function () {
-  sayAlexa('Morning. I’m Alexa, your playlist friend. Say <b>“brew my friend brief”</b> — three fictional music lovers, teasers out loud, full cards here, and every interest takes <b>two yeses</b>.',
-    'Morning. Say brew my friend brief to start.', 'voice');
+  sayAlexa('Morning. Kettle’s on, no rush. I’m Alexa — whenever you’re ready, I’ll introduce <b>three fictional music lovers</b>. A few words out loud, the full story on this page, and nothing moves unless you say so twice.',
+    'Morning. No rush. Say brew my friend brief whenever you’re ready.', 'voice');
 }).catch(function (e) { logTrace('initialize failed', String(e)); });
 </script>
 </body>
