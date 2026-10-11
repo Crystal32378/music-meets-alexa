@@ -26,8 +26,9 @@ npm run test:mcp   # spawns a test server, 14 checks, exits non-zero on failure
 
 ## Live demo for judges (Render, free tier)
 
+**Live: https://music-meets-alexa.onrender.com** (simulator at `/`, MCP at `/mcp`, health at `/health` — verified live 2026-10-11, all gates enforced).
+
 `render.yaml` is a one-click Blueprint: Render Dashboard → New → Blueprint → pick this repo → Apply.
-You get `https://music-meets-alexa.onrender.com` (simulator at `/`, MCP at `/mcp`, health at `/health`).
 Note: free instances sleep when idle, so the first cold load takes ~50s — say so in the demo video.
 Static GitHub Pages can't host this (it needs the Node MCP server), so Render is the demo URL.
 
