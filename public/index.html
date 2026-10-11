@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Music Meets Alexa — simulated Alexa+ experience</title>
+<style>
+  :root { --bg:#14121a; --card:#1f1b2b; --ink:#f5f0e8; --mut:#b9aecb; --acc:#7dd3fc; --coral:#fb7185; --sage:#a3e635; }
+  * { box-sizing:border-box } body { margin:0; background:radial-gradient(1200px 600px at 50% -10%, #2b2350, var(--bg)); color:var(--ink); font:16px/1.55 system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif; }
+  .wrap { max-width:860px; margin:0 auto; padding:28px 18px 60px }
+  header { display:flex; align-items:center; gap:12px; margin-bottom:6px }
+  .orb { width:44px; height:44px; border-radius:50%; background:conic-gradient(from 0deg,#7dd3fc,#c4b5fd,#fb7185,#fde68a,#7dd3fc); animation:spin 8s linear infinite; box-shadow:0 0 30px #7dd3fc66; flex:none }
+  @keyframes spin { to { transform:rotate(360deg) } }
+  h1 { font-size:22px; margin:0 } h1 small { display:block; font-size:13px; color:var(--mut); font-weight:400 }
+  .pill { display:inline-block; font-size:12px; border:1px solid #ffffff2e; border-radius:999px; padding:2px 10px; color:var(--mut); margin:8px 6px 0 0 }
+  #chat { margin:18px 0; display:flex; flex-direction:column; gap:12px; min-height:280px }
+  .msg { max-width:88%; padding:12px 14px; border-radius:16px; background:var(--card); border:1px solid #ffffff14 }
+  .msg.alexa { align-self:flex-start; border-left:3px solid var(--acc) }
+  .msg.you { align-self:flex-end; background:#2c2542 }
+  .msg .who { font-size:11px; letter-spacing:.12em; color:var(--mut); text-transform:uppercase }
+  .surf { display:inline-block; font-size:11px; border-radius:999px; padding:1px 8px; margin-left:6px; vertical-align:middle; letter-spacing:0 }
+  .surf.voice { background:#7dd3fc22; color:var(--acc); border:1px solid #7dd3fc55 }
+  .surf.screen { background:#a3e63518; color:var(--sage); border:1px solid #a3e63555 }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:10px }
+  .card { background:#262041; border:1px solid #ffffff1a; border-radius:14px; padding:12px; cursor:pointer; text-align:left; color:var(--ink); font:inherit }
+  .card:hover { border-color:var(--acc) } .card h3 { margin:4px 0 } .card p { margin:4px 0; font-size:13px; color:var(--mut) }
+  .tag { display:inline-block; font-size:11px; background:#ffffff14; border-radius:999px; padding:1px 8px; margin:2px 4px 0 0 }
+  .bar { display:flex; gap:8px; margin-top:14px }
+  input[type=text] { flex:1; padding:13px 14px; border-radius:14px; border:1px solid #ffffff2a; background:#0f0d16; color:var(--ink); font:inherit }
+  button { border:0; border-radius:14px; padding:13px 16px; font:inherit; font-weight:600; cursor:pointer }
+  #speak { background:linear-gradient(135deg,#7dd3fc,#c4b5fd); color:#14121a; font-size:18px }
+  #send { background:var(--ink); color:#14121a }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px }
+  .chips button { background:#ffffff10; color:var(--ink); border:1px solid #ffffff22; font-size:13px; padding:8px 12px }
+  .inline-btn { background:#7dd3fc22; color:var(--ink); border:1px solid #7dd3fc55; font-size:13px; padding:8px 12px; margin:6px 6px 0 0 }
+  details.trace { margin-top:14px; font-size:12px; color:var(--mut) } details.trace pre { background:#0c0a12; padding:10px; border-radius:10px; overflow:auto; max-height:220px }
+  footer { margin-top:26px; font-size:12px; color:var(--mut) }
+  .now { font-size:13px; color:var(--sage) }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="orb" aria-hidden="true"></div>
+    <h1>Music Meets Alexa <small>Meet the person behind the playlist · simulated Alexa+ experience · fictional adults 18+</small></h1>
+  </header>
+  <div>
+    <span class="pill">Alexa+ track · MCP spec 2025-11-25</span>
+    <span class="pill">Adapted from Coffee Meets Codex (3rd place, Taipei Hack Day)</span>
+    <span class="pill" id="mePill">No profile yet — say "set up my profile"</span>
+  </div>
+
+  <div id="chat" aria-live="polite"></div>
+
+  <div class="chips" id="chips"></div>
+  <div class="bar">
+    <button id="speak" title="Voice input">🎙</button>
+    <input id="input" type="text" placeholder='Try: "Alexa, brew my friend listening brief"' autocomplete="off">
+    <button id="send">Send</button>
+  </div>
+  <div class="now" id="now"></div>
+
+  <details class="trace"><summary>MCP trace (what the judges check: real JSON-RPC to POST /mcp)</summary><pre id="trace">—</pre></details>
+
+  <footer>
+    Every profile and track is fictional. Previews are synthesized in your browser with WebAudio — no copyrighted audio ships.
+    🔊 = what the speaker says (safe for the living room). 🔒 = private-screen detail (never read aloud).
+    Your opt-in profile lives only in this browser; the server receives an attestation flag, never your name.
+    Interests stay <b>Pending</b>; nobody is contacted.
+  </footer>
+</div>
+
+<script>
+const chat = document.getElementById('chat'), input = document.getElementById('input'),
+      trace = document.getElementById('trace'), now = document.getElementById('now'),
+      mePill = document.getElementById('mePill');
+let sessionId = null, lastBrief = [], ctxIntention = 'friend', audioCtx = null;
+let setupFlow = null, pendingSave = null;
+
+// ---- opt-in profile: device-local only (the server never sees it) ----
+function loadProfile() { try { return JSON.parse(localStorage.getItem('mma_profile') || 'null'); } catch { return null; } }
+function saveProfile(p) { localStorage.setItem('mma_profile', JSON.stringify(p)); refreshMe(); }
+function refreshMe() {
+  const p = loadProfile();
+  mePill.textContent = p ? `♪ ${p.displayName} · ${p.intentions.join('/')} · ${p.moods.join(', ')}` : 'No profile yet — say "set up my profile"';
+}
+refreshMe();
+
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function logTrace(label, obj) { trace.textContent = `// ${label}\n` + JSON.stringify(obj, null, 2).slice(0, 4000); }
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  try { speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(String(text).slice(0, 240))); } catch {}
+}
+function sayYou(text) {
+  const d = document.createElement('div');
+  d.className = 'msg you'; d.innerHTML = `<div class="who">You</div><div>${esc(text)}</div>`;
+  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+}
+// surface: 'voice' (speaker-safe, also spoken) or 'screen' (rich, not spoken in full)
+function sayAlexa(html, spoken, surface) {
+  const d = document.createElement('div');
+  d.className = 'msg alexa';
+  const badge = surface === 'screen' ? '<span class="surf screen">🔒 private screen</span>' : '<span class="surf voice">🔊 on the speaker</span>';
+  d.innerHTML = `<div class="who">Alexa${badge}</div><div>${html}</div>`;
+  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+  if (surface === 'voice' && spoken) speak(spoken);
+  return d;
+}
+
+// ---- minimal MCP client ----
+async function mcp(method, params = {}) {
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' };
+  if (sessionId) headers['Mcp-Session-Id'] = sessionId;
+  const body = JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params });
+  const r = await fetch('/mcp', { method: 'POST', headers, body });
+  const sid = r.headers.get('Mcp-Session-Id'); if (sid) sessionId = sid;
+  const data = await r.json();
+  logTrace(`POST /mcp → ${method}`, { request: JSON.parse(body), response: data });
+  if (data.error) throw new Error(data.error.message);
+  return data.result;
+}
+async function callTool(name, args) {
+  const res = await mcp('tools/call', { name, arguments: args });
+  return JSON.parse(res.content?.[0]?.text || '{}');
+}
+function btn(label, askText) {
+  return `<button class="inline-btn" data-ask="${esc(askText)}">${esc(label)}</button>`;
+}
+chat.addEventListener('click', e => {
+  const b = e.target.closest('[data-ask]');
+  if (b) { input.value = b.dataset.ask; send(); }
+});
+
+// ---- WebAudio synth preview (fictional tones, no copyrighted audio) ----
+function preview(t) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    (t.previewTone || [440, 523.25, 659.25]).forEach((f, i) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, audioCtx.currentTime + i * 0.28);
+      g.gain.exponentialRampToValueAtTime(0.22, audioCtx.currentTime + i * 0.28 + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + i * 0.28 + 0.26);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(audioCtx.currentTime + i * 0.28); o.stop(audioCtx.currentTime + i * 0.28 + 0.3);
+    });
+    now.textContent = `♪ Previewing "${t.title}" — synthesized, no copyrighted audio.`;
+  } catch { now.textContent = `♪ "${t.title}" — preview unavailable in this browser.`; }
+}
+
+// ---- chat-driven opt-in profile setup (stays on device) ----
+function startSetup() {
+  setupFlow = { step: 0, draft: {} };
+  sayAlexa(`Let's set your table. 🎵 <b>What should I call you?</b> First name only — it stays in this browser, I never send it anywhere.`,
+    `Let's set up your music profile. What should I call you?`, 'voice');
+}
+function handleSetup(text) {
+  const t = text.toLowerCase().trim(), d = setupFlow.draft;
+  if (/cancel|stop|never mind/.test(t)) {
+    setupFlow = null;
+    sayAlexa(`No problem — nothing was saved. Your brief still works; saving interests needs a profile.`, `Cancelled. Nothing saved.`, 'voice');
+    return;
+  }
+  if (setupFlow.step === 0) {
+    const name = text.trim().slice(0, 30);
+    if (!name) { sayAlexa(`Give me a first name so I know what to call you — or say "cancel".`, null, 'voice'); return; }
+    d.displayName = name; setupFlow.step = 1;
+    sayAlexa(`Nice to meet you, <b>${esc(name)}</b>. This space is 18+. <b>Are you 18 or older? (yes / no)</b>`, `Are you 18 or older?`, 'voice');
+  } else if (setupFlow.step === 1) {
+    if (/\byes\b|yeah|yep|sure|18/.test(t) && !/\bno\b/.test(t)) { d.adult = true; setupFlow.step = 2;
+      sayAlexa(`Noted. <b>Friend, Lover, or both?</b> They stay separate — a friendship never becomes romantic unless both people choose it.`, `Friend, lover, or both?`, 'voice');
+    } else { setupFlow = null;
+      sayAlexa(`This demo is for adults 18+. I've cleared what you told me — come back anytime.`, `This demo is for adults only.`, 'voice');
+    }
+  } else if (setupFlow.step === 2) {
+    const intents = [];
+    if (t.includes('friend')) intents.push('friend');
+    if (t.includes('lover')) intents.push('lover');
+    if (!intents.length) { sayAlexa(`Say <b>friend</b>, <b>lover</b>, or <b>both</b>.`, null, 'voice'); return; }
+    d.intentions = intents; ctxIntention = intents[0]; setupFlow.step = 3;
+    sayAlexa(`<b>Pick 1–3 moods</b> for your brief: mellow, dreamy, warm, groovy.`, `Pick your moods: mellow, dreamy, warm, groovy.`, 'voice');
+  } else if (setupFlow.step === 3) {
+    const moods = ['mellow', 'dreamy', 'warm', 'groovy'].filter(m => t.includes(m));
+    if (!moods.length) { sayAlexa(`Choose from <b>mellow, dreamy, warm, groovy</b>.`, null, 'voice'); return; }
+    d.moods = moods; setupFlow.step = 4;
+    sayAlexa(`Last one: <b>may I include you in discovery</b> for others with matching taste? (yes / no) You can pause anytime.`, `May I include you in discovery?`, 'voice');
+  } else {
+    d.discoveryConsent = /\byes\b|yeah|yep|sure/.test(t) && !/\bno\b/.test(t);
+    d.updatedAt = new Date().toISOString().slice(0, 10);
+    saveProfile(d); setupFlow = null;
+    sayAlexa(`All set, <b>${esc(d.displayName)}</b>. 🔒 Your profile lives <b>only in this browser</b> — when I save interests, the server gets a yes-flag, never your name.<br>${btn('Brew my ' + ctxIntention + ' brief', 'Brew my ' + ctxIntention + ' listening brief')}`,
+      `Profile saved on your device. Say brew my brief whenever you're ready.`, 'screen');
+  }
+}
+
+// ---- router: utterances → MCP tools ----
+async function handle(text) {
+  sayYou(text);
+  if (setupFlow) { handleSetup(text); return; }
+  const t = text.toLowerCase();
+  try {
+    if (/set ?up.*profile|my profile|create.*profile|opt ?in/.test(t) && !/show|full/.test(t)) { startSetup(); return; }
+    if (/lover/.test(t) && /brief|mix|brew|listen/.test(t)) ctxIntention = 'lover';
+    else if (/friend/.test(t) && /brief|mix|brew|listen/.test(t)) ctxIntention = 'friend';
+
+    const who = ['mika', 'jules', 'noah', 'robin'].find(n => t.includes(n));
+
+    if (/brief|brew|listen/.test(t) && !/about|why|opener|save|interest|play|mood|mellow|dreamy|warm|groovy|profile/.test(t)) {
+      const data = await callTool('get_daily_brief', { intention: ctxIntention });
+      lastBrief = data.screen?.cards || [];
+      const box = sayAlexa(`${esc(data.voice)}<div class="cards"></div>`, data.voice, 'voice');
+      const grid = box.querySelector('.cards');
+      lastBrief.forEach(p => {
+        const b = document.createElement('button');
+        b.className = 'card';
+        b.innerHTML = `<h3>${esc(p.displayName)}</h3><p>${esc(p.headline)}</p><p>🎵 ${esc(p.anthem)}</p><div>${p.tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>`;
+        b.dataset.ask = `Tell me about ${p.displayName}`;
+        grid.appendChild(b);
+      });
+      return;
+    }
+    if (who && /show|full/.test(t)) {
+      const data = await callTool('get_profile_detail', { profileId: 'demo-' + who, full: true });
+      const p = data.screen.profile;
+      sayAlexa(`<b>${esc(p.displayName)}</b> · ${esc(p.ageLabel)} · ${esc(p.location)}<br>${esc(p.introduction)}<br>🎵 Anthem: ${esc(p.anthem.title)} — ${esc(p.anthem.artist)} (${esc(p.anthem.vibe)}, ${p.anthem.bpm} bpm)<br>📓 Ritual: <b>${esc(p.ritual.title)}</b> — ${esc(p.ritual.detail)}<br>✨ Made: <b>${esc(p.project.title)}</b> — ${esc(p.project.detail)}<br><div>${p.tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div><div>${btn(`Why ${p.displayName}?`, `Why ${p.displayName} for ${ctxIntention}?')} ${btn('Mixtape opener', `Make a mixtape opener for ${p.displayName}`)} ${btn("I'm interested", `Save interest in ${p.displayName}`)}</div>`,
+        data.voice, 'screen');
+      return;
+    }
+    if (who && /about|who|detail|meet|mika|jules|noah|robin/.test(t) && !/why|opener|mix|save|interest/.test(t)) {
+      const data = await callTool('get_profile_detail', { profileId: 'demo-' + who });
+      const s = data.screen;
+      sayAlexa(`${esc(data.voice)}<br><div>${btn(`Show ${s.displayName}'s full profile`, `Show ${s.displayName}'s full profile`)}</div>`, data.voice, 'voice');
+      return;
+    }
+    if (who && /why/.test(t)) {
+      const data = await callTool('explain_match', { profileId: 'demo-' + who, intention: ctxIntention });
+      if (data.eligible === false) { sayAlexa(esc(data.voice), data.voice, 'voice'); return; }
+      const m = data.screen;
+      sayAlexa(`① ${esc(m.reasons[0])}<br>② ${esc(m.reasons[1])}<br><i>Room for discovery: ${esc(m.uncertainty)}</i><br>Opener: "${esc(m.opener)}"`, data.voice, 'screen');
+      return;
+    }
+    if (who && /opener|mixtape.*for|make.*mix/.test(t)) {
+      const data = await callTool('propose_mixtape_opener', { profileId: 'demo-' + who, intention: ctxIntention });
+      const box = sayAlexa(`🎁 <b>${esc(data.title)}</b><br><i>${esc(data.note)}</i><br>Opener: "${esc(data.opener)}"<div class="cards"></div>`, data.voice, 'voice');
+      const grid = box.querySelector('.cards');
+      data.screen.tracks.forEach(tr => {
+        const b = document.createElement('button');
+        b.className = 'card'; b.innerHTML = `<h3>▶ ${esc(tr.title)}</h3><p>${esc(tr.artist)} · ${esc(tr.mood)} · ${tr.bpm} bpm</p>`;
+        b.onclick = () => preview(tr); grid.appendChild(b);
+      });
+      return;
+    }
+    if (/mellow|dreamy|warm|groovy|mood|play|vibe/.test(t)) {
+      const mood = ['mellow', 'dreamy', 'warm', 'groovy'].find(m => t.includes(m)) || 'mellow';
+      const data = await callTool('recommend_tracks_for_mood', { mood });
+      const box = sayAlexa(`${esc(data.voice)} Tap ▶ to preview (synthesized).<div class="cards"></div>`, data.voice, 'voice');
+      const grid = box.querySelector('.cards');
+      data.tracks.forEach(tr => {
+        const b = document.createElement('button');
+        b.className = 'card'; b.innerHTML = `<h3>▶ ${esc(tr.title)}</h3><p>${esc(tr.artist)} · ${tr.bpm} bpm</p>`;
+        b.onclick = () => preview(tr); grid.appendChild(b);
+      });
+      return;
+    }
+    // two-step interest save
+    if ((pendingSave && /yes|confirm|save it|do it/.test(t)) || (who && /save|interest|i'm interested|interested/.test(t))) {
+      const me = loadProfile();
+      if (!me) {
+        sayAlexa(`I need your opt-in profile before saving anything — it lives on your device, I never see the details.<br><div>${btn('Set up my profile', 'Set up my profile')}</div>`,
+          `I need your opt-in profile first. Say set up my profile.`, 'voice');
+        return;
+      }
+      const target = pendingSave || { profileId: 'demo-' + who, intention: ctxIntention };
+      if (!pendingSave) {
+        const step1 = await callTool('save_interest', { profileId: target.profileId, intention: target.intention, profileConfirmed: true });
+        if (step1.needProfile) { sayAlexa(esc(step1.voice), step1.voice, 'voice'); return; }
+        pendingSave = target;
+        sayAlexa(`${esc(step1.summary)}<br><div>${btn('Yes, save it', 'Yes, save it')}</div>`, step1.voice, 'voice');
+        return;
+      }
+      const done = await callTool('save_interest', { profileId: target.profileId, intention: target.intention, profileConfirmed: true, confirmed: true });
+      pendingSave = null;
+      sayAlexa(`💌 ${esc(done.voice)}`, done.voice, 'voice');
+      return;
+    }
+    sayAlexa(`Try: "brew my friend brief", "tell me about Mika", "show Mika's full profile", "why Jules?", "make a mixtape opener for Noah", "play something mellow" — or "set up my profile".`, null, 'voice');
+  } catch (e) { sayAlexa(`Hmm, that skipped like a scratched record — ${esc(e.message)}`, null, 'voice'); }
+}
+function ask(s) { input.value = s; send(); }
+async function send() { const v = input.value.trim(); if (!v) return; input.value = ''; await handle(v); }
+
+document.getElementById('send').onclick = send;
+input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+document.getElementById('speak').onclick = () => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { sayAlexa('Voice input needs Chrome or Edge. Type instead — I still hear you.', null, 'voice'); return; }
+  const r = new SR(); r.lang = 'en-US';
+  now.textContent = '● Listening… say "Alexa, brew my listening brief".';
+  r.onresult = e => { now.textContent = ''; handle(e.results[0][0].transcript); };
+  r.onend = () => { if (!now.textContent.startsWith('♪')) now.textContent = ''; };
+  r.start();
+};
+const chips = ['Brew my friend brief', 'Tell me about Mika', "Show Mika's full profile", 'Set up my profile', 'Play something mellow'];
+document.getElementById('chips').innerHTML = chips.map(c => `<button>${esc(c)}</button>`).join('');
+document.querySelectorAll('#chips button').forEach(b => b.onclick = () => { input.value = b.textContent; send(); });
+
+(async () => {
+  try { await mcp('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'alexa-simulator', version: '0.2.0' } }); }
+  catch (e) { logTrace('initialize failed', String(e)); }
+  sayAlexa(`Hey, I'm Alexa — your playlist friend. ☕🎵<br>Say <b>"brew my friend brief"</b> and I'll introduce three fictional music lovers. Short teasers on the speaker, full cards on your <b>private screen</b> — and every interest takes <b>two yeses</b>.`,
+    `Hey, I'm Alexa, your playlist friend. Say brew my friend brief to start.`, 'voice');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "music-meets-alexa",
+  "version": "0.2.0",
+  "description": "Music Meets Alexa — meet the person behind the playlist. Voice-first music connection adapted from Coffee Meets Codex for the Amazon Developer Hackathon (Alexa+ track).",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "PORT=8080 node server.mjs",
+    "test:mcp": "node scripts/smoke-mcp.mjs"
+  }
+}
