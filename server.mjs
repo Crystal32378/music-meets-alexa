@@ -137,6 +137,9 @@ function callTool(name, args = {}, ctx = {}) {
           anthem: `${p.anthem.title} — ${p.anthem.artist} (${p.anthem.vibe}, ${p.anthem.bpm} bpm)`,
           project: p.project.title,
           icebreaker: p.opener,
+          vibe: p.anthem.vibe,
+          bpm: p.anthem.bpm,
+          cat: 'MMA-' + String(profiles.indexOf(p) + 1).padStart(3, '0'),
           })),
         },
       });

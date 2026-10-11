@@ -43,7 +43,7 @@ try {
   check('6 tools listed', list.json.result?.tools?.length === 6);
 
   const brief = await call(session, 'get_daily_brief', { intention: 'friend' });
-  check('brief: voice + 3 screen cards + icebreakers', !!brief.voice && brief.screen?.cards?.length === 3 && brief.screen.cards.every((c) => !!c.icebreaker));
+  check('brief: voice + 3 screen cards + icebreakers + label data', !!brief.voice && brief.screen?.cards?.length === 3 && brief.screen.cards.every((c) => !!c.icebreaker && !!c.vibe && !!c.bpm && /^MMA-00\d$/.test(c.cat || '')));
 
   const teaser = await call(session, 'get_profile_detail', { profileId: 'demo-mika' });
   check('teaser by default (no location on screen)', teaser.view === 'teaser' && !('location' in (teaser.screen || {})));
