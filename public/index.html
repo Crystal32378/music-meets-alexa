@@ -223,7 +223,7 @@ async function handle(text) {
     if (who && /show|full/.test(t)) {
       const data = await callTool('get_profile_detail', { profileId: 'demo-' + who, full: true });
       const p = data.screen.profile;
-      sayAlexa(`<b>${esc(p.displayName)}</b> · ${esc(p.ageLabel)} · ${esc(p.location)}<br>${esc(p.introduction)}<br>🎵 Anthem: ${esc(p.anthem.title)} — ${esc(p.anthem.artist)} (${esc(p.anthem.vibe)}, ${p.anthem.bpm} bpm)<br>📓 Ritual: <b>${esc(p.ritual.title)}</b> — ${esc(p.ritual.detail)}<br>✨ Made: <b>${esc(p.project.title)}</b> — ${esc(p.project.detail)}<br><div>${p.tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div><div>${btn(`Why ${p.displayName}?`, `Why ${p.displayName} for ${ctxIntention}?')} ${btn('Mixtape opener', `Make a mixtape opener for ${p.displayName}`)} ${btn("I'm interested", `Save interest in ${p.displayName}`)}</div>`,
+      sayAlexa(`<b>${esc(p.displayName)}</b> · ${esc(p.ageLabel)} · ${esc(p.location)}<br>${esc(p.introduction)}<br>🎵 Anthem: ${esc(p.anthem.title)} — ${esc(p.anthem.artist)} (${esc(p.anthem.vibe)}, ${p.anthem.bpm} bpm)<br>📓 Ritual: <b>${esc(p.ritual.title)}</b> — ${esc(p.ritual.detail)}<br>✨ Made: <b>${esc(p.project.title)}</b> — ${esc(p.project.detail)}<br><div>${p.tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div><div>${btn(`Why ${p.displayName}?`, `Why ${p.displayName} for ${ctxIntention}?`)} ${btn('Mixtape opener', `Make a mixtape opener for ${p.displayName}`)} ${btn("I'm interested", `Save interest in ${p.displayName}`)}</div>`,
         data.voice, 'screen');
       return;
     }
