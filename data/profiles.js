@@ -101,16 +101,16 @@ export const profiles = [
 // (frequencies + pattern), so the web simulator can synthesize a preview
 // without shipping any copyrighted audio.
 export const tracks = [
-  { id: 't-sidewalk', title: 'Sidewalk Slow Spin', artist: 'Mika & The Leafy Lanes', mood: 'mellow', bpm: 92, previewTone: [392, 440, 523.25] },
-  { id: 't-joy', title: 'Small Joy Machine', artist: 'Jules Patchbay', mood: 'dreamy', bpm: 100, previewTone: [329.63, 392, 587.33] },
-  { id: 't-kept', title: 'Good Things, Kept', artist: 'Noah Paperbound', mood: 'warm', bpm: 84, previewTone: [261.63, 329.63, 392] },
-  { id: 't-almanac', title: 'Weekend Almanac', artist: 'Robin Claytone', mood: 'groovy', bpm: 96, previewTone: [349.23, 440, 493.88] },
-  { id: 't-nightbus', title: 'Night Bus Window', artist: 'Tape Ferns', mood: 'mellow', bpm: 88, previewTone: [293.66, 349.23, 440] },
-  { id: 't-sunday', title: 'Unfinished Sunday', artist: 'Patchbay Choir', mood: 'dreamy', bpm: 104, previewTone: [440, 523.25, 659.25] },
-  { id: 't-paper', title: 'Paper Cup Waltz', artist: 'Noah Paperbound', mood: 'warm', bpm: 90, previewTone: [392, 493.88, 587.33] },
-  { id: 't-clay', title: 'Clay & Chorus', artist: 'Robin Claytone', mood: 'groovy', bpm: 98, previewTone: [311.13, 392, 466.16] },
-  { id: 't-cardigan', title: 'Cardigan Weather', artist: 'Theo Woolwind', mood: 'warm', bpm: 86, previewTone: [329.63, 415.3, 493.88] },
-  { id: 't-neon', title: 'Neon Bell', artist: 'Ren Paperlane', mood: 'groovy', bpm: 102, previewTone: [466.16, 523.25, 622.25] },
+  { id: 't-sidewalk', owner: 'demo-mika', title: 'Sidewalk Slow Spin', artist: 'Mika & The Leafy Lanes', mood: 'mellow', bpm: 92, previewTone: [392, 440, 523.25] },
+  { id: 't-joy', owner: 'demo-jules', title: 'Small Joy Machine', artist: 'Jules Patchbay', mood: 'dreamy', bpm: 100, previewTone: [329.63, 392, 587.33] },
+  { id: 't-kept', owner: 'demo-noah', title: 'Good Things, Kept', artist: 'Noah Paperbound', mood: 'warm', bpm: 84, previewTone: [261.63, 329.63, 392] },
+  { id: 't-almanac', owner: 'demo-robin', title: 'Weekend Almanac', artist: 'Robin Claytone', mood: 'groovy', bpm: 96, previewTone: [349.23, 440, 493.88] },
+  { id: 't-nightbus', owner: 'demo-ren', title: 'Night Bus Window', artist: 'Tape Ferns', mood: 'mellow', bpm: 88, previewTone: [293.66, 349.23, 440] },
+  { id: 't-sunday', owner: 'demo-jules', title: 'Unfinished Sunday', artist: 'Patchbay Choir', mood: 'dreamy', bpm: 104, previewTone: [440, 523.25, 659.25] },
+  { id: 't-paper', owner: 'demo-noah', title: 'Paper Cup Waltz', artist: 'Noah Paperbound', mood: 'warm', bpm: 90, previewTone: [392, 493.88, 587.33] },
+  { id: 't-clay', owner: 'demo-robin', title: 'Clay & Chorus', artist: 'Robin Claytone', mood: 'groovy', bpm: 98, previewTone: [311.13, 392, 466.16] },
+  { id: 't-cardigan', owner: 'demo-theo', title: 'Cardigan Weather', artist: 'Theo Woolwind', mood: 'warm', bpm: 86, previewTone: [329.63, 415.3, 493.88] },
+  { id: 't-neon', owner: 'demo-ren', title: 'Neon Bell', artist: 'Ren Paperlane', mood: 'groovy', bpm: 102, previewTone: [466.16, 523.25, 622.25] },
 ];
 
 export function briefByIntention(intention, daySeed) {

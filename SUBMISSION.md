@@ -24,7 +24,7 @@
 | 0:15–0:45 | Terminal: `npm start`, `npm run test:mcp` (11 PASS), MCP Inspector tools/list | "A self-hosted MCP server, spec 2025-11-25, Streamable HTTP. Six music-connection tools, all tested." |
 | 0:45–1:20 | Browser sim: click 🎙, say "brew my friend brief" → 3 cards → "tell me about Mika" (teaser) → "show Mika's full profile" (🔒 card) | "Teasers on the speaker, full cards on your private screen — because Alexa lives in the living room." |
 | 1:20–1:50 | "Set up my profile" → 4-step chat flow, localStorage note | "Your profile stays on your device. The server gets a yes-flag, never your name." |
-| 1:50–2:25 | "Why Jules?" → reasons + uncertainty; "mixtape opener for Noah" → tap ▶ synth preview | "Why each match, with room for discovery. Previews synthesized live, no copyrighted audio." |
+| 1:50–2:25 | "Why Jules?" → reasons + uncertainty; tap Mika's badge → city-pop loop + heartbeat line → "That's Mika's kind of music" | "Why each match, with room for discovery. Original generative loops, one per person — tap the label to listen." |
 | 2:25–2:45 | "Save interest in Mika" → profile gate → "Yes, save it" → Pending; show MCP trace | "Two yeses. One stays Pending. Every call is real JSON-RPC — watch the trace." |
 | 2:45–3:00 | Closing: repo URL + "built Oct 11–23, adapted from our 3rd-place hack" | "Music Meets Alexa — meet the person behind the playlist." |
 

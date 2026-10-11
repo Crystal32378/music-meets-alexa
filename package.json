@@ -10,6 +10,8 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "PORT=8080 node server.mjs",
-    "test:mcp": "node scripts/smoke-mcp.mjs"
+    "test:mcp": "node scripts/smoke-mcp.mjs",
+    "test:music": "node scripts/verify-music.mjs",
+    "test": "npm run test:mcp && npm run test:music"
   }
 }
