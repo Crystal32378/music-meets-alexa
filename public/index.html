@@ -159,6 +159,7 @@
   .chips button { background: transparent; color: var(--quiet); border: 1px solid var(--line); font-size: 13px; padding: 7px 14px; border-radius: 999px; cursor: pointer; font: inherit; }
   .chips button:hover, .chips button:focus-visible { color: var(--ink); border-color: var(--ink); outline: none; }
   #now { margin-top: 10px; font-size: 13px; color: var(--leaf); min-height: 20px; }
+  .voicetag { margin-top: 2px; font-size: 12px; color: var(--quiet); }
 
   details.trace { margin-top: 18px; font-size: 12.5px; color: var(--quiet); }
   details.trace pre { background: var(--ink); color: var(--paper); padding: 12px; border-radius: 16px; overflow: auto; max-height: 220px; }
@@ -200,6 +201,7 @@
     <button id="send" type="button">Send</button>
   </div>
   <div id="now" role="status"></div>
+  <div id="voiceTag" class="voicetag" role="status"></div>
   <div id="nowplay" hidden>
     <span class="npdisc" aria-hidden="true"></span>
     <div class="npmeta"><b id="npTitle">—</b><span id="npSub">—</span></div>
@@ -245,25 +247,34 @@ var pickedVoice = null;
 function pickVoice() {
   try {
     var vs = speechSynthesis.getVoices() || [];
-    var prefs = ['Sonia', 'Aria', 'Jenny', 'Samantha', 'Google US English', 'Microsoft Aria', 'Microsoft Jenny', 'Zira', 'Tessa', 'Karen', 'Moira', 'Fiona', 'Siri'];
-    for (var i = 0; i < prefs.length; i++) {
-      var f = vs.filter(function (v) { return v.lang && v.lang.indexOf('en-US') === 0 && v.name.indexOf(prefs[i]) !== -1; })[0];
-      if (f) return f;
-    }
-    return vs.filter(function (v) { return v.lang === 'en-US'; })[0] ||
+    var by = function (re) {
+      for (var i = 0; i < vs.length; i++) {
+        if (re.test(vs[i].name) && vs[i].lang && vs[i].lang.indexOf('en') === 0) return vs[i];
+      }
+      return null;
+    };
+    return by(/sonia/i) ||
+      by(/aria/i) ||
+      by(/jenny/i) ||
+      by(/samantha/i) ||
+      by(/google us english/i) ||
       vs.filter(function (v) { return v.lang && v.lang.indexOf('en') === 0; })[0] || null;
   } catch (e) { return null; }
 }
 try {
   pickedVoice = pickVoice();
-  speechSynthesis.onvoiceschanged = function () { pickedVoice = pickVoice(); };
+  speechSynthesis.onvoiceschanged = function () { pickedVoice = pickVoice(); refreshVoiceTag(); };
+  refreshVoiceTag();
 } catch (e) {}
+function refreshVoiceTag() {
+  try { document.getElementById('voiceTag').textContent = 'Voice · ' + (pickedVoice ? pickedVoice.name : 'system default') + ' (browser speech, not the Alexa voice)'; } catch (e) {}
+}
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
   try {
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(String(text).slice(0, 220));
-    u.lang = 'en-US'; u.rate = 0.95; u.pitch = 1;
+    u.lang = (pickedVoice && pickedVoice.lang) || 'en-US'; u.rate = 0.95; u.pitch = 1;
     if (pickedVoice) u.voice = pickedVoice;
     u.onstart = function () { orbState('speaking'); };
     speechSynthesis.speak(u);
