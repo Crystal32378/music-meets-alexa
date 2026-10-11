@@ -24,7 +24,11 @@ npm start
 npm run test:mcp   # spawns a test server, 14 checks, exits non-zero on failure
 ```
 
-## Live demo for judges (Render, free tier)
+## Voice (AWS Builder integration)
+
+Spoken lines are pre-rendered with **Amazon Polly** (neural Danielle) into `public/audio/` — the page plays MP3s first and falls back to browser speech synthesis. Regenerate with `npm run gen:voice` (needs AWS creds + `aws` CLI; ~$0.12 for all 79 lines). This is also our AWS Builder mini-challenge integration, documented with a friction log in `SUBMISSION.md`.
+
+## Live demo for judges (Render)
 
 **Live: https://music-meets-alexa.onrender.com** (simulator at `/`, MCP at `/mcp`, health at `/health` — verified live 2026-10-11, all gates enforced).
 

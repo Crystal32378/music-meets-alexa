@@ -12,6 +12,7 @@
     "dev": "PORT=8080 node server.mjs",
     "test:mcp": "node scripts/smoke-mcp.mjs",
     "test:music": "node scripts/verify-music.mjs",
+    "gen:voice": "node scripts/gen-voice.mjs",
     "test": "npm run test:mcp && npm run test:music"
   }
 }

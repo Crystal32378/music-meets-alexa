@@ -160,6 +160,7 @@
   .chips button:hover, .chips button:focus-visible { color: var(--ink); border-color: var(--ink); outline: none; }
   #now { margin-top: 10px; font-size: 13px; color: var(--leaf); min-height: 20px; }
   .voicetag { margin-top: 2px; font-size: 12px; color: var(--quiet); }
+  #fx { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 80; }
 
   details.trace { margin-top: 18px; font-size: 12.5px; color: var(--quiet); }
   details.trace pre { background: var(--ink); color: var(--paper); padding: 12px; border-radius: 16px; overflow: auto; max-height: 220px; }
@@ -208,6 +209,7 @@
     <canvas id="viz" width="260" height="56" aria-label="Heartbeat line dancing to the music"></canvas>
     <button id="npStop" type="button">Stop</button>
   </div>
+  <canvas id="fx" aria-hidden="true"></canvas>
 
   <details class="trace"><summary>The machinery, for judges: every reply below is real JSON-RPC to POST /mcp</summary><pre id="trace">—</pre></details>
 
@@ -286,7 +288,7 @@ function sayYou(text) {
   list.appendChild(li); li.scrollIntoView({ block: 'nearest' });
 }
 /* surface 'voice': spoken + shown. surface 'screen': shown richly, never spoken. */
-function sayAlexa(html, spoken, surface) {
+function sayAlexa(html, spoken, surface, key) {
   trackNo += 1;
   var li = document.createElement('li');
   var tag = surface === 'screen'
@@ -294,7 +296,7 @@ function sayAlexa(html, spoken, surface) {
     : '<span class="heard">Heard in the room</span>';
   li.innerHTML = '<div class="no">' + String(trackNo).padStart(2, '0') + '</div><div><div>' + tag + '</div><div class="line">' + html + '</div></div>';
   list.appendChild(li); li.scrollIntoView({ block: 'nearest' });
-  if (surface === 'voice' && spoken) speak(spoken);
+  if (surface === 'voice' && spoken) speakVoice(spoken, key !== undefined ? key : lastVoiceKey);
   var body = li.querySelector('.line');
   return body;
 }
@@ -313,9 +315,47 @@ function mcp(method, params) {
     return data.result;
   });
 }
+/* Pre-rendered Polly voice: MP3 first, browser speech as fallback.
+   Key scheme mirrors scripts/gen-voice.mjs — keep them in sync. */
+var lastVoiceKey = null;
+var audioManifest = null, lastAudio = null;
+fetch('/audio/manifest.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (m) { audioManifest = m && m.files ? m.files : null; }).catch(function () {});
+function voiceKey(tool, args, data) {
+  if (tool === 'get_daily_brief') return 'brief__' + args.intention;
+  if (tool === 'get_profile_detail') return 'profile__' + args.profileId + (args.full ? '__full' : '');
+  if (tool === 'explain_match') return 'explain__' + args.profileId + '__' + args.intention;
+  if (tool === 'propose_mixtape_opener') return 'mix__' + args.profileId + '__' + args.intention;
+  if (tool === 'recommend_tracks_for_mood') return 'mood__' + args.mood;
+  if (tool === 'save_interest') {
+    if (data.needProfile) return 'save__needprofile';
+    if (data.eligible === false) return 'save__ineligible__' + args.profileId;
+    if (data.error === 'CONFIRM_ORDER') return 'save__confirmorder';
+    if (data.confirmRequired) return 'save__' + args.profileId + '__' + args.intention + '__step1';
+    if (data.saved) return 'save__' + args.profileId + '__' + args.intention + '__step2';
+  }
+  return null;
+}
+function speakVoice(spoken, key) {
+  if (audioManifest && key && audioManifest[key]) {
+    try {
+      if (lastAudio) { try { lastAudio.pause(); } catch (e) {} }
+      var a = new Audio('/audio/' + audioManifest[key]);
+      lastAudio = a;
+      a.onended = function () { orbState(null); };
+      a.onerror = function () { speak(spoken); };
+      a.onplaying = function () { orbState('speaking'); };
+      var pr = a.play();
+      if (pr && pr.catch) pr.catch(function () { speak(spoken); });
+      return;
+    } catch (e) {}
+  }
+  speak(spoken);
+}
 function callTool(name, args) {
   return mcp('tools/call', { name: name, arguments: args }).then(function (res) {
-    return JSON.parse((res.content && res.content[0] && res.content[0].text) || '{}');
+    var data = JSON.parse((res.content && res.content[0] && res.content[0].text) || '{}');
+    lastVoiceKey = voiceKey(name, args, data);
+    return data;
   });
 }
 function askBtn(label, askText, ghost) {
@@ -323,11 +363,11 @@ function askBtn(label, askText, ghost) {
 }
 list.addEventListener('click', function (e) {
   var play = e.target.closest('[data-play]');
-  if (play) { playSong(play.getAttribute('data-play')); return; }
+  if (play) { playSong(play.getAttribute('data-play'), play); return; }
   var b = e.target.closest('[data-ask]');
   if (b) { input.value = b.getAttribute('data-ask'); send(); return; }
   var row = e.target.closest('[data-owner]');
-  if (row) { playSong(row.getAttribute('data-owner')); }
+  if (row) { playSong(row.getAttribute('data-owner'), row); }
 });
 list.addEventListener('keydown', function (e) {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-play]')) {
@@ -463,7 +503,75 @@ function stopSong(silent) {
   if (vizRAF) cancelAnimationFrame(vizRAF);
   if (!silent) nowEl.textContent = '';
 }
-function playSong(owner) {
+/* ---- Restrained celebration: notes when music starts, confetti on a saved yes.
+   Skipped entirely under prefers-reduced-motion. Magazine comes alive, no SSR pull. */
+var fxCanvas = null, fxCtx = null, fxParts = [], fxRAF = null;
+var fxOn = (function () {
+  try {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    fxCanvas = document.getElementById('fx');
+    if (!fxCanvas || !fxCanvas.getContext) return false;
+    fxCtx = fxCanvas.getContext('2d');
+    var fit = function () { fxCanvas.width = window.innerWidth; fxCanvas.height = window.innerHeight; };
+    fit();
+    if (window.addEventListener) window.addEventListener('resize', fit);
+    return true;
+  } catch (e) { return false; }
+})();
+var NOTE_GLYPHS = ['♪', '♫', '✦', '∙'];
+var FX_COLORS = ['#FF3200', '#16130f', '#97712B', '#6C5CE7'];
+function fxTick() {
+  fxRAF = null;
+  if (!fxParts.length) { fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); return; }
+  var now = performance.now();
+  fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+  fxParts = fxParts.filter(function (p) {
+    var age = (now - p.t0) / 1000;
+    if (age >= p.life) return false;
+    var k = age / p.life;
+    p.x += p.vx * 0.016; p.y += p.vy * 0.016; p.vy += (p.grav || 0) * 0.016; p.rot += (p.spin || 0) * 0.016;
+    fxCtx.save();
+    fxCtx.globalAlpha = 1 - k;
+    fxCtx.translate(p.x, p.y); fxCtx.rotate(p.rot || 0);
+    if (p.glyph) { fxCtx.font = p.size + 'px Georgia, serif'; fxCtx.fillStyle = p.color; fxCtx.fillText(p.glyph, 0, 0); }
+    else { fxCtx.fillStyle = p.color; fxCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); }
+    fxCtx.restore();
+    return true;
+  });
+  fxRAF = requestAnimationFrame(fxTick);
+}
+function fxAdd(list) {
+  if (!fxOn) return;
+  var t = performance.now();
+  for (var i = 0; i < list.length; i++) { list[i].t0 = t; fxParts.push(list[i]); }
+  if (!fxRAF) fxRAF = requestAnimationFrame(fxTick);
+}
+function spawnNotes(el) {
+  if (!fxOn || !el || !el.getBoundingClientRect) return;
+  var r = el.getBoundingClientRect();
+  var cx = r.left + r.width / 2, cy = r.top + r.height / 3, out = [], i;
+  for (i = 0; i < 7; i++) {
+    out.push({ glyph: NOTE_GLYPHS[i % NOTE_GLYPHS.length], color: FX_COLORS[i % FX_COLORS.length],
+      x: cx + (Math.random() - 0.5) * 40, y: cy + (Math.random() - 0.5) * 20,
+      vx: (Math.random() - 0.5) * 40, vy: -50 - Math.random() * 50,
+      size: 14 + Math.random() * 10, life: 1.2 + Math.random() * 0.6, rot: (Math.random() - 0.5) * 0.6, spin: (Math.random() - 0.5) * 1.5 });
+  }
+  fxAdd(out);
+}
+function burstConfetti(el) {
+  if (!fxOn) return;
+  var cx = window.innerWidth / 2, cy = 140, i;
+  if (el && el.getBoundingClientRect) { var r = el.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + 30; }
+  var out = [];
+  for (i = 0; i < 26; i++) {
+    var a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 160;
+    out.push({ color: FX_COLORS[i % FX_COLORS.length], x: cx, y: cy,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, grav: 520,
+      size: 4 + Math.random() * 4, life: 0.8, rot: Math.random() * 6.28, spin: (Math.random() - 0.5) * 12 });
+  }
+  fxAdd(out);
+}
+function playSong(owner, el) {
   var S = SONGS[owner];
   if (!S) return;
   if (playState && playState.owner === owner) { stopSong(); nowEl.textContent = 'Paused. Tap a badge to spin again.'; return; }
@@ -474,9 +582,10 @@ function playSong(owner) {
   playState = { owner: owner };
   showNowPlay(S);
   markPlaying(owner, true);
+  if (el) spawnNotes(el);
   (function () {
     var body = sayAlexa('That’s <b>' + esc(S.name) + '’s kind of music</b> — “' + esc(S.title) + '”.',
-      'That’s ' + S.name + '’s kind of music. Want to know a little more?', 'voice');
+      'That’s ' + S.name + '’s kind of music. Want to know a little more?', 'voice', 'announce__' + owner);
     var div = document.createElement('div');
     div.className = 'act';
     div.innerHTML = askBtn('Meet ' + S.name, 'Tell me about ' + S.name);
@@ -526,14 +635,14 @@ function startViz() {
 function startSetup() {
   setupFlow = { step: 0, draft: {} };
   sayAlexa('Your corner, your pace. <b>What should I call you?</b> A first name is plenty — it stays in this browser; nothing travels anywhere.',
-    'Take your time. What should I call you?', 'voice');
+    'Take your time. What should I call you?', 'voice', 'setup_name');
 }
 function handleSetup(text) {
   var t = text.toLowerCase().trim(), d = setupFlow.draft;
   if (/cancel|stop|never mind/.test(t)) {
     setupFlow = null;
     sayAlexa('No problem, nothing saved. The brief still plays. Saving an interest needs a profile, whenever you’re ready.',
-      'Cancelled. Nothing saved.', 'voice');
+      'Cancelled. Nothing saved.', 'voice', 'setup_cancel');
     return;
   }
   if (setupFlow.step === 0) {
@@ -541,15 +650,15 @@ function handleSetup(text) {
     if (!name) { sayAlexa('Give me a first name, or say “cancel”.', null, 'voice'); return; }
     d.displayName = name; setupFlow.step = 1;
     sayAlexa('Nice to meet you, <b>' + esc(name) + '</b>. This room is 18+. <b>Are you 18 or older?</b>',
-      'Are you 18 or older?', 'voice');
+      'Are you 18 or older?', 'voice', 'setup_adult');
   } else if (setupFlow.step === 1) {
     if (/\byes\b|yeah|yep|sure/.test(t) && !/\bno\b/.test(t)) {
       d.adult = true; setupFlow.step = 2;
       sayAlexa('<b>Friend, lover, or both?</b> They stay separate here — a friendship never turns romantic unless both people choose it.',
-        'Friend, lover, or both?', 'voice');
+        'Friend, lover, or both?', 'voice', 'setup_intention');
     } else {
       setupFlow = null;
-      sayAlexa('This demo is for adults, so I’ve cleared what you told me. Come back anytime.', 'This demo is for adults only.', 'voice');
+      sayAlexa(      'This demo is for adults, so I’ve cleared what you told me. Come back anytime.', 'This demo is for adults only.', 'voice', 'setup_minor');
     }
   } else if (setupFlow.step === 2) {
     var intents = [];
@@ -560,13 +669,13 @@ function handleSetup(text) {
     }
     if (!intents.length) { sayAlexa('Say <b>friend</b>, <b>lover</b>, or <b>both</b>.', null, 'voice'); return; }
     d.intentions = intents; ctxIntention = intents[0]; setupFlow.step = 3;
-    sayAlexa('<b>Pick one to three moods</b> for your brief: mellow, dreamy, warm, groovy.', 'Pick your moods: mellow, dreamy, warm, groovy.', 'voice');
+    sayAlexa('<b>Pick one to three moods</b> for your brief: mellow, dreamy, warm, groovy.', 'Pick your moods: mellow, dreamy, warm, groovy.', 'voice', 'setup_moods');
   } else if (setupFlow.step === 3) {
     var moods = ['mellow', 'dreamy', 'warm', 'groovy'].filter(function (m) { return t.indexOf(m) !== -1; });
     if (!moods.length) { sayAlexa('Choose from <b>mellow, dreamy, warm, groovy</b>.', null, 'voice'); return; }
     d.moods = moods; setupFlow.step = 4;
     sayAlexa('Last one: <b>may I include you in discovery</b> for others with matching taste? You can pause anytime.',
-      'May I include you in discovery?', 'voice');
+      'May I include you in discovery?', 'voice', 'setup_consent');
   } else {
     d.discoveryConsent = /\byes\b|yeah|yep|sure/.test(t) && !/\bno\b/.test(t);
     d.updatedAt = new Date().toISOString().slice(0, 10);
@@ -689,7 +798,7 @@ function handle(text) {
   if ((pendingSave && /yes|confirm|save it|do it/.test(t)) || (who && /save|interest|interested/.test(t))) {
     var me = loadProfile();
     if (!me) {
-      var b0 = sayAlexa('Saving needs your opt-in profile first. It lives on your device — I never see the details.', 'I need your opt-in profile first.', 'voice');
+      var b0 = sayAlexa('Saving needs your opt-in profile first. It lives on your device — I never see the details.', 'Before I save anything, I need your opt-in music profile — your name, 18-plus confirmation, and what you\'re open to. It lives on your device; I never see the details. Say "set up my profile".', 'voice', 'save__needprofile');
       var d0 = document.createElement('div');
       d0.className = 'act'; d0.innerHTML = askBtn('Set up my profile', 'Set up my profile');
       b0.appendChild(d0);
@@ -709,6 +818,7 @@ function handle(text) {
     return callTool('save_interest', { profileId: target.profileId, intention: target.intention, profileConfirmed: true, confirmed: true }).then(function (done) {
       pendingSave = null;
       sayAlexa('💌 ' + esc(done.voice), done.voice, 'voice');
+      burstConfetti(list.lastElementChild);
     }).catch(fail);
   }
   sayAlexa('Try “brew my friend brief”, “tell me about Mika”, “show Mika’s full card”, “why Jules”, “a mixtape opener for Noah”, “play something mellow” — or “set up my profile”.', null, 'voice');
@@ -801,7 +911,7 @@ document.getElementById('cta').onclick = function () {
 };
 peopleEl.addEventListener('click', function (e) {
   var play = e.target.closest('[data-play]');
-  if (play) playSong(play.getAttribute('data-play'));
+  if (play) playSong(play.getAttribute('data-play'), play);
 });
 peopleEl.addEventListener('keydown', function (e) {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-play]')) {
@@ -818,7 +928,7 @@ Array.prototype.forEach.call(document.querySelectorAll('#chips button'), functio
 mcp('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'alexa-simulator', version: '0.2.0' } }).then(function () {
   loadHero();
   sayAlexa('Morning. Kettle’s on, no rush. I’m Alexa — whenever you’re ready, I’ll introduce <b>three fictional music lovers</b>. A few words out loud, the full story on this page, and nothing moves unless you say so twice.',
-    'Morning. No rush. Say brew my friend brief whenever you’re ready.', 'voice');
+    'Morning. No rush. Say brew my friend brief whenever you’re ready.', 'voice', 'greeting');
 }).catch(function (e) { logTrace('initialize failed', String(e)); });
 </script>
 </body>
