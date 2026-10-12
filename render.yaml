@@ -1,13 +1,12 @@
 # Render Blueprint — one-click public demo for judges.
 # Render Dashboard → New → Blueprint → pick this repo → Apply.
-# Free tier is enough. You get https://music-meets-alexa.onrender.com
-# (MCP at /mcp, simulator at /). Note: free instances sleep when idle,
-# so the first load after a while takes ~50s — mention it in the demo video.
+# Paid single-instance compute avoids Free-tier idle spin-down.
+# Public demo: https://music-meets-alexa.onrender.com (MCP at /mcp).
 services:
   - type: web
     name: music-meets-alexa
     runtime: node
-    plan: free
+    plan: 0.5c-512mb
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
