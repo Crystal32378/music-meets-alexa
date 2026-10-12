@@ -42,5 +42,4 @@ consistent narration across browsers — not the official Alexa voice — and
 WebAudio to synthesize original music in real time.
 
 ## seg8-closing (2:45–2:58)
-Inspired by our third-place Coffee Meets Codex prototype, rebuilt for music
-and voice. Music Meets Alexa. Meet the person behind the playlist.
+Music Meets Alexa. A voice-first way to meet someone new. Meet the person behind the playlist.

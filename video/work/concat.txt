@@ -1,0 +1,8 @@
+file '/Users/crystalchang/Desktop/Hermes Lab/music-meets-alexa/video/work/seg0_title.mp4'
+file '/Users/crystalchang/Desktop/Hermes Lab/music-meets-alexa/video/work/seg1_meet.mp4'
+file '/Users/crystalchang/Desktop/Hermes Lab/music-meets-alexa/video/work/seg2_hear.mp4'
+file '/Users/crystalchang/Desktop/Hermes Lab/music-meets-alexa/video/work/seg3_why.mp4'
+file '/Users/crystalchang/Desktop/Hermes Lab/music-meets-alexa/video/work/seg4_privacy.mp4'
+file '/Users/crystalchang/Desktop/Hermes Lab/music-meets-alexa/video/work/seg5_yeses.mp4'
+file '/Users/crystalchang/Desktop/Hermes Lab/music-meets-alexa/video/work/seg6_tech.mp4'
+file '/Users/crystalchang/Desktop/Hermes Lab/music-meets-alexa/video/work/seg7_closing.mp4'

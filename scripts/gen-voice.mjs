@@ -123,6 +123,7 @@ try {
     setup_consent: 'May I include you in discovery?',
     setup_minor: 'This demo is for adults only.',
     setup_cancel: 'Cancelled. Nothing saved.',
+    setup_demo: 'Demo listener on. Nothing about you is used.',
   };
   for (const [k, v] of Object.entries(statics)) lines.set(k, v);
   for (const p of profiles) {

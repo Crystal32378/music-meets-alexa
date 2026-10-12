@@ -82,6 +82,7 @@
     "setup_consent": "setup_consent.mp3",
     "setup_minor": "setup_minor.mp3",
     "setup_cancel": "setup_cancel.mp3",
+    "setup_demo": "setup_demo.mp3",
     "announce__demo-mika": "announce__demo-mika.mp3",
     "announce__demo-jules": "announce__demo-jules.mp3",
     "announce__demo-noah": "announce__demo-noah.mp3",

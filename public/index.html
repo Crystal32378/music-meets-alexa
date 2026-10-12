@@ -184,7 +184,7 @@
     <div class="issue">The morning listening paper · <b>Daily</b> · Simulated Alexa+ edition</div>
   </div>
   <h1 class="hero">Some people just get your playlist.</h1>
-  <p class="lede">Meet the person behind the playlist. Three fictional music lovers, introduced slowly — take your time, they’re not going anywhere.</p>
+  <p class="lede">Meet the person behind the playlist. Three fictional music lovers, introduced slowly — take your time, they’re not going anywhere. You browse as a simulated guest unless you write your own corner.</p>
   <div class="itoggle" role="group" aria-label="Intention">
     <button type="button" data-hero-int="friend" aria-pressed="true">Friend</button>
     <button type="button" data-hero-int="lover" aria-pressed="false">Lover</button>
@@ -217,8 +217,8 @@
   <footer>
     Everyone and every track here is fictional. Previews are synthesized in your browser with WebAudio, so no copyrighted audio ships.
     Lines marked “heard in the room” are the only words spoken aloud. Lines marked “only on this screen” stay off the speaker.
-    Your opt-in profile never leaves this browser. Saved interests rest at Pending. Nobody is contacted.
-    Spoken lines use your browser’s speech synthesis in a natural US voice — not the Alexa voice.
+    Your opt-in profile never leaves this browser — or browse as the simulated demo listener. Saved interests rest at Pending. Nobody is contacted.
+    Voices are pre-rendered Polly clips (Danielle) with browser-speech fallback — not the Alexa voice.
     All music is composed in code for this demo.
     <br>Set in Bely Display and Futura PT · Printed on the web · Take your time.
   </footer>
@@ -233,11 +233,21 @@ var setupFlow = null, pendingSave = null;
 
 function loadProfile() { try { return JSON.parse(localStorage.getItem('mma_profile') || 'null'); } catch (e) { return null; } }
 function saveProfile(p) { localStorage.setItem('mma_profile', JSON.stringify(p)); refreshMe(); }
+/* The demo listener: a fully simulated guest corner. Lets anyone walk the
+   whole demo without typing a single true thing about themselves. */
+var DEMO_PERSONA = { displayName: 'Guest Listener', adult: true, discoveryConsent: true,
+  intentions: ['friend', 'lover'], moods: ['mellow', 'warm'],
+  interests: ['making things', 'city pop', 'slow trains'],
+  simulated: true, updatedAt: '2026-10-12' };
+function tasteWords() {
+  var me = loadProfile() || {};
+  return [].concat(me.interests || [], me.moods || []).filter(function (s) { return s; });
+}
 function refreshMe() {
   var p = loadProfile();
   mePill.innerHTML = p
-    ? 'Your corner: <b>' + esc(p.displayName) + '</b>, open to ' + esc(p.intentions.join(' and ')) + ', tuned to ' + esc(p.moods.join(', ')) + '.'
-    : 'Your corner is empty — say “set up my profile”.';
+    ? 'Your corner: <b>' + esc(p.displayName) + '</b>' + (p.simulated ? ' (demo listener · simulated)' : '') + ', open to ' + esc(p.intentions.join(' and ')) + ', tuned to ' + esc(p.moods.join(', ')) + '.'
+    : 'Your corner is empty — “set up my profile”, or “use the demo listener”.';
 }
 refreshMe();
 
@@ -270,7 +280,7 @@ try {
   refreshVoiceTag();
 } catch (e) {}
 function refreshVoiceTag() {
-  try { document.getElementById('voiceTag').textContent = 'Voice · ' + (pickedVoice ? pickedVoice.name : 'system default') + ' (browser speech, not the Alexa voice)'; } catch (e) {}
+  try { document.getElementById('voiceTag').textContent = 'Voice · Polly Danielle MP3s first, then ' + (pickedVoice ? pickedVoice.name : 'browser default') + ' (not the Alexa voice)'; } catch (e) {}
 }
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
@@ -649,11 +659,22 @@ function startViz() {
 
 function startSetup() {
   setupFlow = { step: 0, draft: {} };
-  sayAlexa('Your corner, your pace. <b>What should I call you?</b> A first name is plenty — it stays in this browser; nothing travels anywhere.',
+  var body = sayAlexa('Your corner, your pace. <b>What should I call you?</b> A first name is plenty — it stays in this browser; nothing travels anywhere.',
     'Take your time. What should I call you?', 'voice', 'setup_name');
+  var div = document.createElement('div');
+  div.className = 'act';
+  div.innerHTML = askBtn('Use the demo listener instead', 'Use the demo listener');
+  body.appendChild(div);
+}
+function useDemoListener() {
+  setupFlow = null;
+  saveProfile(JSON.parse(JSON.stringify(DEMO_PERSONA)));
+  sayAlexa('You’re in as the <b>demo listener</b> — a fully simulated profile, so nothing about you is used. Corner: making things, city pop, slow trains; tuned mellow and warm. Say “brew my friend brief” when ready.',
+    'Demo listener on. Nothing about you is used.', 'voice', 'setup_demo');
 }
 function handleSetup(text) {
   var t = text.toLowerCase().trim(), d = setupFlow.draft;
+  if (/demo (listener|persona|guest)|use the demo|browse as (a )?guest/.test(t)) { useDemoListener(); return; }
   if (/cancel|stop|never mind/.test(t)) {
     setupFlow = null;
     sayAlexa('No problem, nothing saved. The brief still plays. Saving an interest needs a profile, whenever you’re ready.',
@@ -719,6 +740,7 @@ function handle(text) {
   sayYou(text);
   if (setupFlow) { handleSetup(text); return Promise.resolve(); }
   var t = text.toLowerCase();
+  if (/demo (listener|persona|guest)|use the demo|browse as (a )?guest/.test(t)) { useDemoListener(); return Promise.resolve(); }
   if (/set ?up.*profile|my profile|create.*profile|opt ?in/.test(t) && !/show|full/.test(t)) { startSetup(); return Promise.resolve(); }
   if (/lover/.test(t) && /brief|mix|brew|listen/.test(t)) ctxIntention = 'lover';
   else if (/friend/.test(t) && /brief|mix|brew|listen/.test(t)) ctxIntention = 'friend';
@@ -770,13 +792,18 @@ function handle(text) {
     }).catch(fail);
   }
   if (who && /why/.test(t)) {
-    return callTool('explain_match', { profileId: 'demo-' + who, intention: ctxIntention }).then(function (data) {
+    return callTool('explain_match', { profileId: 'demo-' + who, intention: ctxIntention, taste: tasteWords() }).then(function (data) {
       if (data.eligible === false) { sayAlexa(esc(data.voice), data.voice, 'voice'); return; }
       var m = data.screen;
       var body = sayAlexa('Two reasons, one honest unknown.', data.voice, 'screen');
       var div = document.createElement('div');
       div.className = 'detail';
-      div.innerHTML = '<p>① ' + esc(m.reasons[0]) + '</p><p>② ' + esc(m.reasons[1]) + '</p>' +
+      var me = loadProfile();
+      var shared = (data.screen && data.screen.shared) || [];
+      var sharedHtml = shared.length
+        ? '<p class="soft">Shared ground with your ' + (me && me.simulated ? 'demo ' : '') + 'corner: ' + esc(shared.join(', ').toLowerCase()) + '.</p>'
+        : '<p class="soft">No shared tags yet — curiosity is the starting point.</p>';
+      div.innerHTML = '<p>① ' + esc(m.reasons[0]) + '</p><p>② ' + esc(m.reasons[1]) + '</p>' + sharedHtml +
         '<p class="soft">Room for discovery: ' + esc(m.uncertainty) + '</p><p class="pullquote">“' + esc(m.opener) + '”</p>';
       body.appendChild(div);
     }).catch(fail);
@@ -815,7 +842,7 @@ function handle(text) {
     if (!me) {
       var b0 = sayAlexa('Saving needs your opt-in profile first. It lives on your device — I never see the details.', 'Before I save anything, I need your opt-in music profile — your name, 18-plus confirmation, and what you\'re open to. It lives on your device; I never see the details. Say "set up my profile".', 'voice', 'save__needprofile');
       var d0 = document.createElement('div');
-      d0.className = 'act'; d0.innerHTML = askBtn('Set up my profile', 'Set up my profile');
+      d0.className = 'act'; d0.innerHTML = askBtn('Set up my profile', 'Set up my profile') + askBtn('Use demo listener', 'Use the demo listener');
       b0.appendChild(d0);
       return Promise.resolve();
     }
@@ -837,6 +864,50 @@ function handle(text) {
       noteRain();
     }).catch(fail);
   }
+  if (!who && /meet|find|looking for|someone|likes|like|love|into|prefer|want/i.test(t) && !/brief|brew|listen|save|interest|profile|mood|mellow|dreamy|warm|groovy|play|vibe|why|opener|mix|full|show|about|setup|demo|persona|guest|corner|yes|confirm/.test(t)) {
+    return tasteSearch(t);
+  }
+/* Taste search: answer "someone who likes X" from the demo cast itself.
+   No separate index to drift — it reads the live roster via get_daily_brief. */
+var TASTE_STOP = ['who', 'the', 'and', 'for', 'with', 'likes', 'like', 'loves', 'love', 'meet', 'find', 'someone', 'into', 'that', 'this', 'please', 'friend', 'lover', 'person', 'people', 'music', 'song', 'songs', 'want', 'looking', 'prefer', 'kind', 'sort', 'type', 'anyone', 'somebody', 'a', 'an', 'me', 'my', 'of', 'on'];
+function tasteSearch(t) {
+  var getAll = callTool('get_daily_brief', { intention: 'friend', limit: 6 }).then(function (d) {
+    var cards = (d.screen && d.screen.cards) || [];
+    return callTool('get_daily_brief', { intention: 'lover', limit: 6 }).then(function (d2) {
+      var seen = {}, all = cards.concat((d2.screen && d2.screen.cards) || []).filter(function (p) { return seen[p.id] ? false : (seen[p.id] = true); });
+      return all;
+    });
+  });
+  return getAll.then(function (all) {
+    var words = t.toLowerCase().split(/[^a-z]+/).filter(function (w) { return w.length > 2 && TASTE_STOP.indexOf(w) === -1; });
+    if (!words.length) {
+      sayAlexa('Tell me a sound you love — a genre, a mood, an instrument — and I’ll check this demo cast of six.', null, 'voice');
+      return;
+    }
+    var scored = all.map(function (p) {
+      var hay = (p.tags.join(' ') + ' ' + p.anthem + ' ' + p.headline).toLowerCase();
+      var hits = words.filter(function (w) { return hay.indexOf(w) !== -1; });
+      return { p: p, hits: hits };
+    }).filter(function (s) { return s.hits.length > 0; }).slice(0, 3);
+    if (!scored.length) {
+      var q = words.slice(0, 3).join(' ');
+      var body = sayAlexa('No ' + esc(q) + ' lover in this demo cast of six — I checked everyone. The closest shelves here are vinyl soul and city pop.', 'No ' + q + ' here, I checked all six. Closest: vinyl soul and city pop.', 'voice');
+      var div = document.createElement('div');
+      div.className = 'act';
+      div.innerHTML = askBtn('Show today’s brief', 'Brew my ' + ctxIntention + ' listening brief') + askBtn('Play something mellow', 'Play something mellow');
+      body.appendChild(div);
+      return;
+    }
+    var names = scored.map(function (s) { return s.p.displayName; });
+    var body = sayAlexa(esc(names.join(' and ') + ' match ' + scored[0].hits.join(', ') + ' in this demo cast.'), names.join(' and ') + ' match. Tap a card for the full story.', 'voice');
+    var grid = document.createElement('div');
+    grid.className = 'sleeves';
+    grid.innerHTML = scored.map(function (s) {
+      return '<button type="button" class="sleeve" data-ask="Tell me about ' + esc(s.p.displayName) + '">' + sleeveHtml(s.p) + '</button>';
+    }).join('');
+    body.appendChild(grid);
+  }).catch(fail);
+}
   sayAlexa('Try “brew my friend brief”, “tell me about Mika”, “show Mika’s full card”, “why Jules”, “a mixtape opener for Noah”, “play something mellow” — or “set up my profile”.', null, 'voice');
   return Promise.resolve();
 }

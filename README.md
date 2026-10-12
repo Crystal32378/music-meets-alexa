@@ -69,7 +69,7 @@ plus **`screen`** (rich detail for the private screen, never read out in full):
 
 A speaker sits in a shared room, so discovery happens in two layers:
 _teaser on the speaker, full card on the private screen, and only when asked._
-Your opt-in music profile (name, 18+, intentions, moods) lives **only in the browser's localStorage** — the server receives an attestation flag, never your name.
+Your opt-in music profile (name, 18+, intentions, moods) lives **only in the browser's localStorage** — the server receives an attestation flag, never your name. The only profile words that ever travel are the taste keywords you search or match by. A one-tap simulated demo listener lets anyone walk the full demo without typing anything true.
 Saving takes two explicit yeses, and the server enforces the order per session
 (step 1 must precede step 2; unchosen intentions are refused server-side).
 

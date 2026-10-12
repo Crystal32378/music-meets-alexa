@@ -46,7 +46,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         intention: { type: 'string', enum: ['friend', 'lover'], description: 'Connection intention. Friend and Lover stay separate choices.' },
-        limit: { type: 'number', description: 'Max profiles (default 3, max 4).' },
+        limit: { type: 'number', description: 'Max profiles (default 3, max 6).' },
         daySeed: { type: 'string', description: 'Demo utility: YYYY-MM-DD to preview a specific daily rotation (for pre-rendering voice lines). Defaults to today.' },
       },
       required: ['intention'],
@@ -66,12 +66,13 @@ const TOOLS = [
   },
   {
     name: 'explain_match',
-    description: 'Why this connection: two grounded reasons + uncertainty + opener on screen; one sentence on voice. Never a compatibility score.',
+    description: 'Why this connection: two grounded reasons + uncertainty + opener on screen; one sentence on voice. Pass taste (words from your corner) to get the shared-ground overlap back. Never a compatibility score.',
     inputSchema: {
       type: 'object',
       properties: {
         profileId: { type: 'string' },
         intention: { type: 'string', enum: ['friend', 'lover'] },
+        taste: { type: 'array', items: { type: 'string' }, description: 'Optional words from your own corner (interests, moods). Only these travel for matching — never a name.' },
       },
       required: ['profileId', 'intention'],
     },
@@ -125,7 +126,7 @@ function callTool(name, args = {}, ctx = {}) {
     case 'get_daily_brief': {
       const intention = args.intention === 'lover' ? 'lover' : 'friend';
       const lineup = briefLineupIndex(intention, args.daySeed);
-      const list = briefByIntention(intention, args.daySeed).slice(0, Math.min(Math.max(args.limit || 3, 1), 4));
+      const list = briefByIntention(intention, args.daySeed).slice(0, Math.min(Math.max(args.limit || 3, 1), 6));
       return toolResult({
         asOf: AS_OF,
         intention,
@@ -176,10 +177,16 @@ function callTool(name, args = {}, ctx = {}) {
       if (!p.intentions.includes(intention))
         return toolResult({ candidateId: p.id, eligible: false, voice: `${p.displayName} isn't open to ${intention} in this demo. Try another intention or person.` });
       const m = explainMatch(p, intention);
+      // Shared ground: person-side terms (tags, vibe) found in the taste words
+      // sent from your corner. No identity travels — just search words.
+      const mine = (Array.isArray(args.taste) ? args.taste : []).map((s) => String(s).toLowerCase());
+      const shared = p.tags
+        .filter((t) => mine.some((w) => w && (w.includes(t.toLowerCase()) || t.toLowerCase().includes(w))))
+        .concat(mine.some((w) => w && (w.includes(p.anthem.vibe.toLowerCase()) || p.anthem.vibe.toLowerCase().includes(w))) ? [p.anthem.vibe] : []);
       return toolResult({
         candidateId: p.id, eligible: true,
         voice: `Why ${p.displayName}? ${m.reasons[0].split('.')[0]}. Full reasons are on your screen.`,
-        screen: m,
+        screen: { ...m, shared },
       });
     }
     case 'propose_mixtape_opener': {

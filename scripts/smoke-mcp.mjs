@@ -71,6 +71,13 @@ try {
 
   const mood = await call(session, 'recommend_tracks_for_mood', { mood: 'warm' });
   check('mood tracks (warm ≥ 2)', (mood.tracks || []).length >= 2);
+  const wide = await call(session, 'get_daily_brief', { intention: 'friend', limit: 6 });
+  check('brief limit 6 covers roster', wide.screen?.cards?.length === 5);
+  const taste = await call(session, 'explain_match', { profileId: 'demo-mika', intention: 'friend', taste: ['making things', 'city pop', 'mellow'] });
+  check('shared ground traces to taste', Array.isArray(taste.screen?.shared) && taste.screen.shared.some((s) => /city pop/i.test(s)));
+  const cold = await call(session, 'explain_match', { profileId: 'demo-jules', intention: 'friend', taste: ['death metal'] });
+  check('no shared tags stays honest', Array.isArray(cold.screen?.shared) && cold.screen.shared.length === 0);
+  check('mood tracks (warm ≥ 2)', (mood.tracks || []).length >= 2);
 
   const theo = await call(session, 'get_profile_detail', { profileId: 'demo-theo', full: true });
   check('six-person cast (Theo full card)', theo.view === 'full' && theo.screen?.profile?.displayName === 'Theo');
