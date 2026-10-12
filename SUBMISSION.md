@@ -16,17 +16,25 @@
 
 **Track:** Alexa+. **Tech at runtime:** the simulator's `mcp()` client performs real JSON-RPC `tools/call` against `POST /mcp` (see in-page MCP trace + `curl` in README).
 
-## 2. Demo video script (< 3 min, screen capture + narration, no third-party media)
+## 2. Demo video storyboard (~2:58, music film first, tech reveal last)
 
-| Time | Visual | Line |
+Full narration in `voiceover/script.md` (Matthew voice, MP3s in `voiceover/mp3/`).
+Rule: narration and Danielle never overlap — pauses hold site audio + music.
+
+| Time | Visual | Note |
 |---|---|---|
-| 0:00–0:15 | Title card: Music Meets Alexa + Coffee Meets Codex 3rd-place badge | "Third place with Coffee Meets Codex. Now — what if you could just say it?" |
-| 0:15–0:45 | Terminal: `npm start`, `npm run test:mcp` (11 PASS), MCP Inspector tools/list | "A self-hosted MCP server, spec 2025-11-25, Streamable HTTP. Six music-connection tools, all tested." |
-| 0:45–1:20 | Browser sim: click 🎙, say "brew my friend brief" → 3 cards → "tell me about Mika" (teaser) → "show Mika's full profile" (🔒 card) | "Teasers on the speaker, full cards on your private screen — because Alexa lives in the living room." |
-| 1:20–1:50 | "Set up my profile" → 4-step chat flow, localStorage note | "Your profile stays on your device. The server gets a yes-flag, never your name." |
-| 1:50–2:25 | "Why Jules?" → reasons + uncertainty; tap Mika's badge → city-pop loop + heartbeat line → "That's Mika's kind of music" | "Why each match, with room for discovery. Original generative loops, one per person — tap the label to listen." |
-| 2:25–2:45 | "Save interest in Mika" → profile gate → "Yes, save it" → Pending; show MCP trace | "Two yeses. One stays Pending. Every call is real JSON-RPC — watch the trace." |
-| 2:45–3:00 | Closing: repo URL + "built Oct 11–23, adapted from our 3rd-place hack" | "Music Meets Alexa — meet the person behind the playlist." |
+| 0:00–0:17 Hook | Magazine homepage, six portraits, labels, orb | "What if music could also start a conversation?" |
+| 0:17–0:41 Meet | Friend → "Meet your music people" → Daily Brief, 3 profiles | Pause for Danielle's lineup |
+| 0:41–1:08 Hear | Teaser → full card → tap label → notes, spinning disc, heartbeat viz | Let the music play a few seconds untouched |
+| 1:08–1:30 Why | Reasons + uncertainty → 3-track mixtape + opener | Never a score |
+| 1:30–1:55 Privacy | Speaker teaser vs private card → local profile setup | Your profile never leaves the browser |
+| 1:55–2:18 Two yeses | Save → confirm ×2 → Pending + confetti + note rain | Leave room for Danielle + celebration |
+| 2:18–2:45 Tech | MCP trace, tools/list, code, Polly assets | The reveal — not the opening |
+| 2:45–2:58 Closing | Homepage, portraits, title + repo URL | "Meet the person behind the playlist." |
+
+Recording tips: pre-complete the test profile (or fast-forward setup) so the
+two-yes demo never stalls; trim long Danielle lines but never fake a
+completed action.
 
 ## 3. Friction log (up to +10% judging bonus — be honest, be specific)
 

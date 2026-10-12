@@ -1,0 +1,278 @@
+{
+  "brief_friend": {
+    "asOf": "2026-10-11",
+    "intention": "friend",
+    "lineup": 1,
+    "engine": "scripted-demo",
+    "note": "Fictional adults · scripted Music Scout · real choices stay yours. 18+.",
+    "voice": "Here's your friend listening brief. Jules, into Ambient modular; Noah, into Acoustic folk; Theo, into Indie folk. Say \"tell me about\" plus a name for a teaser.",
+    "screen": {
+      "cards": [
+        {
+          "id": "demo-jules",
+          "displayName": "Jules",
+          "ageLabel": "Fictional adult · 30",
+          "location": "Singapore · online & long-distance",
+          "headline": "A little code. A lot of color.",
+          "tags": [
+            "Ambient modular",
+            "Generative art",
+            "Sunday demos"
+          ],
+          "anthem": "Small Joy Machine — Jules Patchbay (dreamy, 100 bpm)",
+          "project": "Small Joy Machine",
+          "icebreaker": "Small Joy Machine sounds like my kind of noise. What everyday sound would you sample first?",
+          "vibe": "dreamy",
+          "bpm": 100,
+          "cat": "MMA-002"
+        },
+        {
+          "id": "demo-noah",
+          "displayName": "Noah",
+          "ageLabel": "Fictional adult · 32",
+          "location": "Taipei · local & online",
+          "headline": "Tools for things worth remembering.",
+          "tags": [
+            "Acoustic folk",
+            "Notebooks",
+            "Slow mornings"
+          ],
+          "anthem": "Good Things, Kept — Noah Paperbound (warm, 84 bpm)",
+          "project": "Good Things, Kept",
+          "icebreaker": "Good Things, Kept feels like a song already. What moment would its chorus hold?",
+          "vibe": "warm",
+          "bpm": 84,
+          "cat": "MMA-003"
+        },
+        {
+          "id": "demo-theo",
+          "displayName": "Theo",
+          "ageLabel": "Fictional adult · 31",
+          "location": "Taipei · local weekends",
+          "headline": "Golden hour, every hour.",
+          "tags": [
+            "Indie folk",
+            "Film photos",
+            "Slow trains"
+          ],
+          "anthem": "Cardigan Weather — Theo Woolwind (warm, 86 bpm)",
+          "project": "Platform Light",
+          "icebreaker": "Platform Light feels like an album cover already. Which station would you shoot first?",
+          "vibe": "warm",
+          "bpm": 86,
+          "cat": "MMA-005"
+        }
+      ]
+    }
+  },
+  "teaser_mika": {
+    "profileId": "demo-mika",
+    "view": "teaser",
+    "voice": "Mika. Making room for little adventures. Their anthem is Sidewalk Slow Spin. Want the full card on your private screen? Say \"show Mika's full profile\".",
+    "screen": {
+      "displayName": "Mika",
+      "headline": "Making room for little adventures.",
+      "anthem": "Sidewalk Slow Spin — Mika & The Leafy Lanes",
+      "fullAvailable": true
+    }
+  },
+  "full_mika": {
+    "profileId": "demo-mika",
+    "view": "full",
+    "voice": "Full card for Mika is on your screen. Ritual: One new street a day.",
+    "screen": {
+      "profile": {
+        "id": "demo-mika",
+        "displayName": "Mika",
+        "ageLabel": "Fictional adult · 28",
+        "location": "Taipei · open to online",
+        "headline": "Making room for little adventures.",
+        "introduction": "Part designer, part sidewalk explorer. My walks have soundtracks — tell me the last song that made you take the long way home.",
+        "intentions": [
+          "friend",
+          "lover"
+        ],
+        "tags": [
+          "City pop",
+          "Lo-fi walks",
+          "Bossa nova"
+        ],
+        "anthem": {
+          "title": "Sidewalk Slow Spin",
+          "artist": "Mika & The Leafy Lanes",
+          "vibe": "mellow",
+          "bpm": 92
+        },
+        "ritual": {
+          "title": "One new street a day",
+          "detail": "A walking journal with a 3-song mini-mix per street."
+        },
+        "project": {
+          "title": "The Sidewalk Club",
+          "detail": "A tiny walking journal that turns a familiar neighborhood into a new adventure."
+        },
+        "opener": "I liked the idea behind The Sidewalk Club. What song would you put on its first page?"
+      },
+      "notice": "Private-screen card. Never read aloud in full on a shared speaker."
+    }
+  },
+  "why_jules": {
+    "candidateId": "demo-jules",
+    "eligible": true,
+    "voice": "Why Jules? Jules turns curiosity into small, thoughtful projects. Full reasons are on your screen.",
+    "screen": {
+      "reasons": [
+        "Jules turns curiosity into small, thoughtful projects. “Small Joy Machine” is a natural place to start — especially with “Small Joy Machine” on.",
+        "Your interest in making things meets ambient modular and generative art. Something here to explore together."
+      ],
+      "uncertainty": "Shared music taste is a starting point. Chemistry, availability and real-world fit are still unknown.",
+      "opener": "Small Joy Machine sounds like my kind of noise. What everyday sound would you sample first?"
+    }
+  },
+  "opener_mika": {
+    "title": "First hello mix for Mika",
+    "note": "Opens with “Sidewalk Slow Spin”, then drifts mellow. Fictional tracks, synthesized preview — no copyrighted audio.",
+    "tracks": [
+      {
+        "id": "t-sidewalk",
+        "owner": "demo-mika",
+        "title": "Sidewalk Slow Spin",
+        "artist": "Mika & The Leafy Lanes",
+        "mood": "mellow",
+        "bpm": 92,
+        "previewTone": [
+          392,
+          440,
+          523.25
+        ]
+      },
+      {
+        "id": "t-joy",
+        "owner": "demo-jules",
+        "title": "Small Joy Machine",
+        "artist": "Jules Patchbay",
+        "mood": "dreamy",
+        "bpm": 100,
+        "previewTone": [
+          329.63,
+          392,
+          587.33
+        ]
+      },
+      {
+        "id": "t-kept",
+        "owner": "demo-noah",
+        "title": "Good Things, Kept",
+        "artist": "Noah Paperbound",
+        "mood": "warm",
+        "bpm": 84,
+        "previewTone": [
+          261.63,
+          329.63,
+          392
+        ]
+      }
+    ],
+    "opener": "I liked the idea behind The Sidewalk Club. What song would you put on its first page?",
+    "voice": "A starter mix for Mika: Sidewalk Slow Spin, Small Joy Machine, Good Things, Kept. Track list and opener are on your screen.",
+    "screen": {
+      "tracks": [
+        {
+          "id": "t-sidewalk",
+          "owner": "demo-mika",
+          "title": "Sidewalk Slow Spin",
+          "artist": "Mika & The Leafy Lanes",
+          "mood": "mellow",
+          "bpm": 92,
+          "previewTone": [
+            392,
+            440,
+            523.25
+          ]
+        },
+        {
+          "id": "t-joy",
+          "owner": "demo-jules",
+          "title": "Small Joy Machine",
+          "artist": "Jules Patchbay",
+          "mood": "dreamy",
+          "bpm": 100,
+          "previewTone": [
+            329.63,
+            392,
+            587.33
+          ]
+        },
+        {
+          "id": "t-kept",
+          "owner": "demo-noah",
+          "title": "Good Things, Kept",
+          "artist": "Noah Paperbound",
+          "mood": "warm",
+          "bpm": 84,
+          "previewTone": [
+            261.63,
+            329.63,
+            392
+          ]
+        }
+      ],
+      "opener": "I liked the idea behind The Sidewalk Club. What song would you put on its first page?"
+    }
+  },
+  "mood_mellow": {
+    "mood": "mellow",
+    "tracks": [
+      {
+        "id": "t-sidewalk",
+        "owner": "demo-mika",
+        "title": "Sidewalk Slow Spin",
+        "artist": "Mika & The Leafy Lanes",
+        "mood": "mellow",
+        "bpm": 92,
+        "previewTone": [
+          392,
+          440,
+          523.25
+        ]
+      },
+      {
+        "id": "t-nightbus",
+        "owner": "demo-ren",
+        "title": "Night Bus Window",
+        "artist": "Tape Ferns",
+        "mood": "mellow",
+        "bpm": 88,
+        "previewTone": [
+          293.66,
+          349.23,
+          440
+        ]
+      }
+    ],
+    "voice": "For a mellow room: Sidewalk Slow Spin by Mika & The Leafy Lanes; Night Bus Window by Tape Ferns. Tap a track to preview."
+  },
+  "save_needprofile": {
+    "saved": false,
+    "needProfile": true,
+    "voice": "Before I save anything, I need your opt-in music profile — your name, 18-plus confirmation, and what you're open to. It lives on your device; I never see the details. Say \"set up my profile\"."
+  },
+  "save_step1": {
+    "saved": false,
+    "confirmRequired": true,
+    "targetId": "demo-mika",
+    "intention": "friend",
+    "summary": "Friend interest in Mika. Stays Pending until they independently say yes. No contact info is shared.",
+    "voice": "Save a friend interest in Mika? It stays Pending until they say yes too. Nobody is contacted. Say \"yes, save it\" to confirm."
+  },
+  "save_step2": {
+    "saved": true,
+    "id": "in-1791783474729",
+    "targetId": "demo-mika",
+    "intention": "friend",
+    "state": "pending",
+    "simulated": true,
+    "createdAt": "2026-10-12T05:37:54.729Z",
+    "voice": "Saved. One yes for Mika as friend. Pending until they independently say yes. Nobody was contacted."
+  }
+}

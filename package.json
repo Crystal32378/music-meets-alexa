@@ -14,5 +14,8 @@
     "test:music": "node scripts/verify-music.mjs",
     "gen:voice": "node scripts/gen-voice.mjs",
     "test": "npm run test:mcp && npm run test:music"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.0"
   }
 }
