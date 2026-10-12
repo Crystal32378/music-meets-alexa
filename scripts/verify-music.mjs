@@ -1,10 +1,22 @@
 // Verifies the generative music engine headlessly: stubs browser APIs,
 // evals the real inline script, then schedules all 64 steps of every song
 // through scheduleStep with counting stubs. Fails on bad MIDI or empty songs.
+// Also asserts every catalog track has its own loop (row/Now Playing/audio
+// must always agree on the same song).
 import fs from 'node:fs';
+import { tracks } from '../data/profiles.js';
 
 const html = fs.readFileSync('public/index.html', 'utf8');
 const src = html.match(/<script>([\s\S]*)<\/script>/)[1];
+
+const songKeys = [...html.matchAll(/^\s*'(t-[a-z]+)': \{ name:/gm)].map((m) => m[1]);
+const missing = tracks.map((t) => t.id).filter((id) => !songKeys.includes(id));
+const extra = songKeys.filter((id) => !tracks.some((t) => t.id === id));
+if (missing.length || extra.length) {
+  console.error('FAIL  track/song mismatch — missing loops:', missing.join(',') || '-', '| orphan loops:', extra.join(',') || '-');
+  process.exit(1);
+}
+console.log('PASS  every catalog track has its own loop (' + songKeys.length + ')');
 
 function el() {
   return {
@@ -43,10 +55,10 @@ const driver = `;(function(){
   kickDrum = function () { perSong.k = (perSong.k || 0) + 1; };
   noiseHit = function () { perSong.h = (perSong.h || 0) + 1; };
   var ids = Object.keys(SONGS);
-  if (ids.length !== 6) throw new Error('expected 6 songs, got ' + ids.length);
+  if (ids.length !== 10) throw new Error('expected 10 songs, got ' + ids.length);
   ids.forEach(function (id) {
     var S = SONGS[id];
-    if (!S.name || !S.title || !S.bpm) throw new Error(id + ' missing meta');
+    if (!S.name || !S.title || !S.bpm || !S.by) throw new Error(id + ' missing meta');
     if (S.prog.length !== 4) throw new Error(id + ' prog!=4 bars');
     if (S.roots.length !== 4) throw new Error(id + ' roots!=4 bars');
     perSong = {};
@@ -61,4 +73,4 @@ const driver = `;(function(){
 })();`;
 
 eval(src + driver);
-console.log('Music engine verified: 6 songs, all MIDI in range, all loops non-empty.');
+console.log('Music engine verified: ' + songKeys.length + ' songs, all MIDI in range, all loops non-empty.');

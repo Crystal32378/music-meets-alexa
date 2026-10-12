@@ -77,6 +77,9 @@ try {
   check('shared ground traces to taste', Array.isArray(taste.screen?.shared) && taste.screen.shared.some((s) => /city pop/i.test(s)));
   const cold = await call(session, 'explain_match', { profileId: 'demo-jules', intention: 'friend', taste: ['death metal'] });
   check('no shared tags stays honest', Array.isArray(cold.screen?.shared) && cold.screen.shared.length === 0);
+  const dm = await call(session, 'explain_match', { profileId: 'demo-mika', intention: 'friend', taste: ['death metal'] });
+  const dmR2 = dm.screen?.reasons?.[1] || '';
+  check('difference framing never fabricates', /Different shelves/.test(dmR2) && !/making things/i.test(dmR2));
   check('mood tracks (warm ≥ 2)', (mood.tracks || []).length >= 2);
 
   const theo = await call(session, 'get_profile_detail', { profileId: 'demo-theo', full: true });

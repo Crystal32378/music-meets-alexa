@@ -144,15 +144,17 @@ export function overlapTerms(profile, taste) {
 }
 
 export function explainMatch(profile, intention, taste = []) {
-  const shared = `${profile.displayName} turns curiosity into small, thoughtful projects. “${profile.project.title}” is a natural place to start — especially with “${profile.anthem.title}” on.`;
-  const clean = (taste || []).map((s) => String(s)).filter(Boolean).slice(0, 3);
+  const first = `${profile.displayName} turns curiosity into small, thoughtful projects. “${profile.project.title}” is a natural place to start — especially with “${profile.anthem.title}” on.`;
+  const clean = (taste || []).map((s) => String(s)).filter(Boolean);
   let second;
   if (clean.length) {
+    // One overlap from the FULL taste — the same array the screen's
+    // shared line renders, so reasons and shared can never disagree.
     const hit = overlapTerms(profile, clean);
     if (hit.length) {
-      second = `Your ${clean.slice(0, 2).join(' and ')} meets ${profile.displayName}’s ${hit.slice(0, 2).join(' and ').toLowerCase()} — a shared shelf to start from.`;
+      second = `Common ground: ${hit.slice(0, 2).join(' and ').toLowerCase()} — your corner and ${profile.displayName}’s shelf overlap here.`;
     } else {
-      second = `You come from ${clean.slice(0, 2).join(' and ')}; ${profile.displayName} lives in ${profile.tags.slice(0, 2).join(' and ').toLowerCase()} — different shelves, but the same habit of following a sound somewhere new.`;
+      second = `Different shelves — you bring ${clean.slice(0, 2).join(' and ').toLowerCase()}; ${profile.displayName} brings ${profile.tags.slice(0, 2).join(' and ').toLowerCase()}. Curiosity does the rest.`;
     }
   } else {
     second =
@@ -161,7 +163,7 @@ export function explainMatch(profile, intention, taste = []) {
         : `You both chose Lover in this fictional scenario. ${profile.ritual.title} suggests a low-pressure first conversation.`;
   }
   return {
-    reasons: [shared, second],
+    reasons: [first, second],
     uncertainty: 'Shared music taste is a starting point. Chemistry, availability and real-world fit are still unknown.',
     opener: profile.opener,
   };

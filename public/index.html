@@ -377,8 +377,8 @@ list.addEventListener('click', function (e) {
   if (play) { playSong(play.getAttribute('data-play'), play); return; }
   var b = e.target.closest('[data-ask]');
   if (b) { input.value = b.getAttribute('data-ask'); send(); return; }
-  var row = e.target.closest('[data-owner]');
-  if (row) { playSong(row.getAttribute('data-owner'), row); }
+  var row = e.target.closest('[data-track]');
+  if (row) { playSong(row.getAttribute('data-track'), row); }
 });
 list.addEventListener('keydown', function (e) {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-play]')) {
@@ -389,37 +389,57 @@ list.addEventListener('keydown', function (e) {
 /* ---- Original generative music: one 4-bar loop per person (~19s), played twice.
    Every note below is composed for this demo — no samples, no copyrighted audio. */
 var SONGS = {
-  'demo-mika': { name: 'Mika', title: 'Sidewalk Slow Spin', artist: 'Mika & The Leafy Lanes', bpm: 104,
+  't-sidewalk': { name: 'Mika', by: 'demo-mika', title: 'Sidewalk Slow Spin', artist: 'Mika & The Leafy Lanes', bpm: 104,
     prog: [[57,60,64,67],[50,54,57,60],[55,59,62,66],[52,56,59,62]], stab: [0,3,6,10,12], stabDur: 2, chordType: 'triangle', chordVol: 0.09,
     roots: [33,38,31,40], bassPat: [[0,0,2],[3,0,1],[6,12,1],[8,0,2],[10,0,1],[12,7,1],[14,12,2]], bassType: 'square', bassVol: 0.12,
     lead: {0:[69,2],2:[72,2],4:[74,2],6:[76,2],8:[79,3],11:[76,1],12:[74,2],14:[72,2],16:[74,2],18:[76,2],20:[79,2],22:[81,3],24:[79,1],26:[76,2],28:[74,2],30:[72,3],32:[69,2],34:[72,2],36:[74,2],38:[76,2],40:[79,3],43:[81,1],44:[79,2],46:[76,2],48:[74,2],50:[72,2],52:[69,2],54:[67,2],56:[64,4],60:[62,3]}, leadType: 'square', leadVol: 0.085,
     kick: [0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60], snare: [4,12,20,28,36,44,52,60], hat: '8', hatVol: 0.05 },
-  'demo-jules': { name: 'Jules', title: 'Small Joy Machine', artist: 'Jules Patchbay', bpm: 80,
+  't-joy': { name: 'Jules', by: 'demo-jules', title: 'Small Joy Machine', artist: 'Jules Patchbay', bpm: 80,
     prog: [[57,60,64,71],[53,57,60,67],[48,55,59,62],[55,59,62,66]], stab: [0], stabDur: 15, stabAtk: 1.1, chordType: 'sine', chordVol: 0.11,
     roots: [33,29,36,31], bassPat: [[0,0,14]], bassType: 'sine', bassVol: 0.1,
     lead: {8:[81,10],40:[79,10],56:[84,12]}, leadType: 'sine', leadVol: 0.09, leadAtk: 0.03, leadRel: 1.2,
     kick: [0,16,32,48], kickVol: 0.3 },
-  'demo-noah': { name: 'Noah', title: 'Good Things, Kept', artist: 'Noah Paperbound', bpm: 92,
+  't-kept': { name: 'Noah', by: 'demo-noah', title: 'Good Things, Kept', artist: 'Noah Paperbound', bpm: 92,
     prog: [[55,59,62,67],[52,55,59,64],[55,60,64,67],[54,57,62,66]],
     arp: [[0,0,3],[2,1,2],[4,2,2],[6,3,2],[8,2,2],[10,1,2],[12,0,2],[14,1,3]], pluckType: 'triangle', pluckVol: 0.16,
     roots: [43,40,48,50], bassPat: [[0,0,2],[8,0,2]], bassType: 'triangle', bassVol: 0.14,
     hat: '8', hatVol: 0.035 },
-  'demo-robin': { name: 'Robin', title: 'Weekend Almanac', artist: 'Robin Claytone', bpm: 96,
+  't-almanac': { name: 'Robin', by: 'demo-robin', title: 'Weekend Almanac', artist: 'Robin Claytone', bpm: 96,
     prog: [[55,59,62,67],[60,64,67,70],[57,60,64,67],[62,66,69,72]], stab: [0,7,10], stabDur: 3, chordType: 'sine', chordVol: 0.12,
     roots: [31,36,33,38], bassPat: [[0,0,3],[7,0,1],[10,0,2],[12,7,1]], bassType: 'sine', bassVol: 0.2,
     lead: {4:[74,3],12:[76,3],20:[79,3],28:[76,2],36:[74,3],44:[76,3],52:[79,4],60:[76,3]}, leadType: 'triangle', leadVol: 0.1,
     kick: [0,8,16,24,32,40,48,56], snare: [4,12,20,28,36,44,52,60], hat: '8', hatVol: 0.05 },
-  'demo-theo': { name: 'Theo', title: 'Cardigan Weather', artist: 'Theo Woolwind', bpm: 88,
+  't-cardigan': { name: 'Theo', by: 'demo-theo', title: 'Cardigan Weather', artist: 'Theo Woolwind', bpm: 88,
     prog: [[57,60,64],[53,57,60],[55,60,64],[55,59,62]],
     arp: [[0,0,3],[2,1,2],[4,2,2],[6,3,2],[8,2,2],[10,1,2],[12,0,2],[14,1,3]], pluckType: 'triangle', pluckVol: 0.15,
     roots: [33,29,36,31], bassPat: [[0,0,6]], bassType: 'sine', bassVol: 0.11,
     lead: {0:[64,4],8:[67,4],16:[69,4],24:[67,4],32:[64,4],40:[67,4],48:[72,5],56:[69,5]}, leadType: 'triangle', leadVol: 0.09,
     hat: '8', hatVol: 0.03 },
-  'demo-ren': { name: 'Ren', title: 'Neon Bell', artist: 'Ren Paperlane', bpm: 112,
+  't-neon': { name: 'Ren', by: 'demo-ren', title: 'Neon Bell', artist: 'Ren Paperlane', bpm: 112,
     prog: [[53,57,60,65],[50,53,57,60],[46,50,53,58],[48,52,55,60]], stab: [0,4,8,12], stabDur: 1, chordType: 'triangle', chordVol: 0.09,
     roots: [29,26,34,36], bassPat: [[0,0,1],[2,12,1],[4,0,1],[6,12,1],[8,0,1],[10,12,1],[12,0,1],[14,7,1]], bassType: 'square', bassVol: 0.11,
     lead: {0:[77,1],2:[74,1],4:[72,1],6:[74,1],8:[77,1],10:[81,2],12:[79,1],14:[77,1],16:[74,1],18:[72,1],20:[69,1],22:[72,1],24:[74,1],26:[77,2],28:[76,1],30:[74,1],32:[77,1],34:[74,1],36:[72,1],38:[74,1],40:[81,1],42:[79,1],44:[77,1],46:[76,1],48:[74,1],50:[72,1],52:[69,1],54:[67,1],56:[69,1],58:[72,2],60:[74,1],62:[72,1]}, leadType: 'square', leadVol: 0.07,
-    kick: [0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60], snare: [4,12,20,28,36,44,52,60], hat: '16', hatVol: 0.04 }
+    kick: [0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60], snare: [4,12,20,28,36,44,52,60], hat: '16', hatVol: 0.04 },
+  't-nightbus': { name: 'Ren', by: 'demo-ren', title: 'Night Bus Window', artist: 'Tape Ferns', bpm: 88,
+    prog: [[53,57,60,64],[52,55,59,62],[50,53,57,60],[48,52,55,60]], stab: [0,8], stabDur: 6, stabAtk: 0.3, chordType: 'triangle', chordVol: 0.09,
+    roots: [29,28,26,24], bassPat: [[0,0,6]], bassType: 'sine', bassVol: 0.12,
+    lead: {4:[77,4],20:[76,4],36:[79,5],52:[74,6]}, leadType: 'sine', leadVol: 0.08, leadAtk: 0.02, leadRel: 0.8,
+    kick: [0,16,32,48], kickVol: 0.25, hat: '8', hatVol: 0.03 },
+  't-sunday': { name: 'Jules', by: 'demo-jules', title: 'Unfinished Sunday', artist: 'Patchbay Choir', bpm: 84,
+    prog: [[57,60,64,71],[53,57,60,67],[52,55,60,64],[55,59,62,69]], stab: [0], stabDur: 15, stabAtk: 1.2, chordType: 'sine', chordVol: 0.1,
+    roots: [33,29,28,31], bassPat: [[0,0,14]], bassType: 'sine', bassVol: 0.09,
+    lead: {12:[76,10],44:[74,12]}, leadType: 'sine', leadVol: 0.08, leadAtk: 0.03, leadRel: 1.5 },
+  't-paper': { name: 'Noah', by: 'demo-noah', title: 'Paper Cup Waltz', artist: 'Noah Paperbound', bpm: 90,
+    prog: [[55,59,62,67],[55,60,64,67],[52,55,59,64],[54,57,62,66]],
+    arp: [[0,0,4],[4,1,3],[8,2,3],[12,1,4]], pluckType: 'triangle', pluckVol: 0.15,
+    roots: [43,48,40,50], bassPat: [[0,0,3]], bassType: 'triangle', bassVol: 0.13,
+    lead: {0:[67,4],16:[64,4],32:[62,5],48:[59,5]}, leadType: 'triangle', leadVol: 0.08,
+    hat: '8', hatVol: 0.03 },
+  't-clay': { name: 'Robin', by: 'demo-robin', title: 'Clay & Chorus', artist: 'Robin Claytone', bpm: 100,
+    prog: [[50,53,57,60],[46,50,53,58],[53,57,60,65],[48,52,55,60]], stab: [0,6,11], stabDur: 2, chordType: 'square', chordVol: 0.07,
+    roots: [26,34,29,36], bassPat: [[0,0,2],[3,12,1],[6,0,1],[10,7,1],[12,0,2],[14,12,1]], bassType: 'square', bassVol: 0.12,
+    lead: {0:[62,2],2:[65,2],4:[69,2],6:[67,1],8:[65,2],12:[62,2],16:[60,2],18:[62,2],20:[64,2],22:[62,1],24:[60,2],28:[58,2],32:[62,2],34:[65,2],36:[69,2],38:[72,3],40:[69,1],42:[67,2],44:[65,2],48:[64,2],50:[62,2],52:[60,2],54:[58,2],56:[57,4],60:[55,3]}, leadType: 'square', leadVol: 0.07,
+    kick: [0,8,16,24,32,40,48,56], snare: [4,12,20,28,36,44,52,60], hat: '16', hatVol: 0.04 }
 };
 function midi(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 var masterGain = null, analyserNode = null, noiseBuf = null, schedTimer = null, playState = null, vizRAF = null;
@@ -493,8 +513,8 @@ function scheduleStep(S, M, st, t, step) {
   if (hit) noiseHit(t, 0.04, S.hatVol || 0.06, 7500);
 }
 function markPlaying(owner, on) {
-  Array.prototype.forEach.call(document.querySelectorAll('[data-play], [data-owner]'), function (el) {
-    var id = el.getAttribute('data-play') || el.getAttribute('data-owner');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-play], [data-track]'), function (el) {
+    var id = el.getAttribute('data-play') || el.getAttribute('data-track');
     if (on && id === owner) el.classList.add('playing');
     else el.classList.remove('playing');
   });
@@ -596,28 +616,28 @@ function noteRain() {
   }
   fxAdd(out);
 }
-function playSong(owner, el) {
-  var S = SONGS[owner];
+function playSong(songId, el) {
+  var S = SONGS[songId];
   if (!S) return;
-  if (playState && playState.owner === owner) { stopSong(); nowEl.textContent = 'Paused. Tap a badge to spin again.'; return; }
+  if (playState && playState.song === songId) { stopSong(); nowEl.textContent = 'Paused. Tap a badge to spin again.'; return; }
   stopSong(true);
   try { ac(); } catch (e) { nowEl.textContent = 'Music needs a browser with WebAudio.'; return; }
   var step = 60 / S.bpm / 4, N = 64, M = buildMaps(S), s = 0;
   var t0 = audioCtx.currentTime + 0.12;
-  playState = { owner: owner };
+  playState = { song: songId };
   showNowPlay(S);
-  markPlaying(owner, true);
+  markPlaying(songId, true);
   if (el) spawnNotes(el);
   (function () {
     var body = sayAlexa('That’s <b>' + esc(S.name) + '’s kind of music</b> — “' + esc(S.title) + '”.',
-      'That’s ' + S.name + '’s kind of music. Want to know a little more?', 'voice', 'announce__' + owner);
+      'That’s ' + S.name + '’s kind of music. Want to know a little more?', 'voice', 'announce__' + S.by);
     var div = document.createElement('div');
     div.className = 'act';
     div.innerHTML = askBtn('Meet ' + S.name, 'Tell me about ' + S.name);
     body.appendChild(div);
   })();
   schedTimer = setInterval(function () {
-    if (!playState || playState.owner !== owner) { clearInterval(schedTimer); schedTimer = null; return; }
+    if (!playState || playState.song !== songId) { clearInterval(schedTimer); schedTimer = null; return; }
     while (t0 + s * step < audioCtx.currentTime + 0.35) {
       if (s >= N * 2) {
         clearInterval(schedTimer); schedTimer = null;
@@ -731,7 +751,7 @@ function sleeveHtml(p) {
     '<div>' + p.tags.map(function (x) { return '<span class="tag">' + esc(x) + '</span>'; }).join('') + '</div>';
 }
 function spinRowHtml(tr) {
-  return '<button type="button" class="spinrow" data-owner="' + esc(tr.owner || '') + '">' +
+  return '<button type="button" class="spinrow" data-track="' + esc(tr.id || '') + '">' +
     '<span class="disc" aria-hidden="true"></span><span><span class="t">▶ ' + esc(tr.title) + '</span><br><span class="a">' +
     esc(tr.artist) + ' · ' + esc(tr.mood) + ' · ' + tr.bpm + ' bpm</span></span></button>';
 }
@@ -769,7 +789,7 @@ function handle(text) {
       var div = document.createElement('div');
       div.className = 'detail fullcard';
       div.innerHTML = '<div class="pwrap">' + portraitImg(p, true) + '</div>' +
-      '<div class="labelrow"><span class="badgeb" data-play="' + esc(p.id) + '" role="button" tabindex="0" aria-label="Play ' + esc(p.displayName) + '’s song">' + labelBadge({ id: p.id, tags: p.tags, vibe: p.anthem.vibe, bpm: p.anthem.bpm }) + '</span>' +
+      '<div class="labelrow"><span class="badgeb" data-play="' + esc(ANTHEM_TRACK[p.id] || p.id) + '" role="button" tabindex="0" aria-label="Play ' + esc(p.displayName) + '’s song">' + labelBadge({ id: p.id, tags: p.tags, vibe: p.anthem.vibe, bpm: p.anthem.bpm }) + '</span>' +
       '<div><p class="genre" style="color:' + esc(genreColor(p.tags[0])) + '">' + esc(p.tags[0].toUpperCase()) + ' · ' + p.anthem.bpm + ' BPM</p>' +
       '<p class="catsub">' + esc(CAT[p.id] || 'MMA') + ' · Side A · ' + esc(p.anthem.vibe) + ' · tap the label to listen</p></div></div>' +
       '<a class="obilink" href="' + spotifySearch(p.tags[0] + ' music') + '" target="_blank" rel="noopener">Hear the real thing — explore ' + esc(p.tags[0].toLowerCase()) + ' on Spotify ↗</a>' +
@@ -940,6 +960,8 @@ function portraitImg(p, wide) {
   return '<img class="portrait' + (wide ? ' wide' : '') + '" src="/assets/' + file + '" alt="Illustrated portrait of ' + esc(p.displayName) + ', a fictional adult" loading="lazy">';
 }
 var CAT = { 'demo-mika': 'MMA-001', 'demo-jules': 'MMA-002', 'demo-noah': 'MMA-003', 'demo-robin': 'MMA-004', 'demo-theo': 'MMA-005', 'demo-ren': 'MMA-006' };
+/* Every badge plays its person's anthem track — never another song. */
+var ANTHEM_TRACK = { 'demo-mika': 't-sidewalk', 'demo-jules': 't-joy', 'demo-noah': 't-kept', 'demo-robin': 't-almanac', 'demo-theo': 't-cardigan', 'demo-ren': 't-neon' };
 /* One color per genre — same genre, same color, everywhere. */
 var GENRE_COLORS = { 'City pop': '#FF3200', 'Ambient modular': '#6C5CE7', 'Acoustic folk': '#7A8B5F', 'Vinyl soul': '#97712B', 'Indie folk': '#2F7E79' };
 function genreColor(g) { return GENRE_COLORS[g] || '#FF3200'; }
@@ -968,7 +990,7 @@ function renderHero(cards) {
     b.type = 'button'; b.className = 'person';
     b.innerHTML = '<div class="pwrap">' + portraitImg(p) + '</div>' +
       '<h3>' + esc(p.displayName) + '</h3><p class="panthem">🎵 ' + esc(p.anthem) + '</p>' +
-      '<div class="labelrow"><span class="badgeb" data-play="' + esc(p.id) + '" role="button" tabindex="0" aria-label="Play ' + esc(p.displayName) + '’s song">' + labelBadge(p) + '</span><div><p class="genre" style="color:' + esc(genreColor(p.tags[0])) + '">' + esc((p.tags[0] || '').toUpperCase()) + ' · ' + p.bpm + ' BPM</p>' +
+      '<div class="labelrow"><span class="badgeb" data-play="' + esc(ANTHEM_TRACK[p.id] || p.id) + '" role="button" tabindex="0" aria-label="Play ' + esc(p.displayName) + '’s song">' + labelBadge(p) + '</span><div><p class="genre" style="color:' + esc(genreColor(p.tags[0])) + '">' + esc((p.tags[0] || '').toUpperCase()) + ' · ' + p.bpm + ' BPM</p>' +
       '<p class="catsub">' + esc(CAT[p.id] || '') + ' · Side A · tap the label to listen</p></div></div>' +
       '<p class="ice">“' + esc(p.icebreaker || p.headline) + '”</p>';
     b.onclick = function (e) {

@@ -1,0 +1,20 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+const URL='http://localhost:8080/';
+const OUT='/tmp/why-mika-test';
+const W=768,H=720; fs.mkdirSync(OUT,{recursive:true});
+const browser=await chromium.launch();
+const ctx=await browser.newContext({viewport:{width:W,height:H},recordVideo:{dir:OUT,size:{width:W,height:H}},deviceScaleFactor:1});
+const page=await ctx.newPage();
+await page.goto(URL,{waitUntil:'networkidle'});
+await page.waitForTimeout(600);
+async function say(text,waitMs=1200){const before=await page.$$eval('#setlist > li',ls=>ls.length);await page.fill('#input',text);await page.press('#input','Enter');await page.waitForFunction(n=>document.querySelectorAll('#setlist > li').length>n,before,{timeout:8000}).catch(()=>{});await page.waitForTimeout(waitMs);}
+const t0=Date.now();
+await say('why Mika',3000);
+await say('make a mixtape opener for Mika',3000);
+await page.evaluate(()=>document.getElementById('setlist').scrollIntoView());
+await page.waitForTimeout(1500);
+console.log('elapsed_s=', ((Date.now()-t0)/1000).toFixed(1));
+const video=page.video(); await ctx.close();
+const p=await video.path(); fs.renameSync(p, OUT+'/why-mika.webm');
+await browser.close(); console.log('recorded');
