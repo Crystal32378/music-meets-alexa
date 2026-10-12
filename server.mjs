@@ -18,7 +18,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { profiles, tracks, briefByIntention, briefLineupIndex, explainMatch, mixtapeFor, AS_OF } from './data/profiles.js';
+import { profiles, tracks, briefByIntention, briefLineupIndex, explainMatch, overlapTerms, mixtapeFor, AS_OF } from './data/profiles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8080);
@@ -176,13 +176,11 @@ function callTool(name, args = {}, ctx = {}) {
       const intention = args.intention === 'lover' ? 'lover' : 'friend';
       if (!p.intentions.includes(intention))
         return toolResult({ candidateId: p.id, eligible: false, voice: `${p.displayName} isn't open to ${intention} in this demo. Try another intention or person.` });
-      const m = explainMatch(p, intention);
+      const taste = Array.isArray(args.taste) ? args.taste.map(String) : [];
+      const m = explainMatch(p, intention, taste);
       // Shared ground: person-side terms (tags, vibe) found in the taste words
       // sent from your corner. No identity travels — just search words.
-      const mine = (Array.isArray(args.taste) ? args.taste : []).map((s) => String(s).toLowerCase());
-      const shared = p.tags
-        .filter((t) => mine.some((w) => w && (w.includes(t.toLowerCase()) || t.toLowerCase().includes(w))))
-        .concat(mine.some((w) => w && (w.includes(p.anthem.vibe.toLowerCase()) || p.anthem.vibe.toLowerCase().includes(w))) ? [p.anthem.vibe] : []);
+      const shared = overlapTerms(p, taste);
       return toolResult({
         candidateId: p.id, eligible: true,
         voice: `Why ${p.displayName}? ${m.reasons[0].split('.')[0]}. Full reasons are on your screen.`,

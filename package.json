@@ -13,7 +13,8 @@
     "test:mcp": "node scripts/smoke-mcp.mjs",
     "test:music": "node scripts/verify-music.mjs",
     "gen:voice": "node scripts/gen-voice.mjs",
-    "test": "npm run test:mcp && npm run test:music"
+    "test:client": "node scripts/verify-client.mjs",
+    "test": "npm run test:mcp && npm run test:music && npm run test:client"
   },
   "devDependencies": {
     "playwright": "^1.64.0"

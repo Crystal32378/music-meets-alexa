@@ -133,12 +133,33 @@ export function briefByIntention(intention, daySeed) {
   return pool.map((_, i) => profiles.find((p) => p.id === pool[(start + i) % pool.length]));
 }
 
-export function explainMatch(profile, intention) {
+export function overlapTerms(profile, taste) {
+  const mine = (taste || []).map((s) => String(s).toLowerCase()).filter(Boolean);
+  const tags = profile.tags.filter((t) =>
+    mine.some((w) => w && (w.includes(t.toLowerCase()) || t.toLowerCase().includes(w))));
+  if (mine.some((w) => w && (w.includes(profile.anthem.vibe.toLowerCase()) || profile.anthem.vibe.toLowerCase().includes(w)))) {
+    tags.push(profile.anthem.vibe);
+  }
+  return [...new Set(tags)];
+}
+
+export function explainMatch(profile, intention, taste = []) {
   const shared = `${profile.displayName} turns curiosity into small, thoughtful projects. “${profile.project.title}” is a natural place to start — especially with “${profile.anthem.title}” on.`;
-  const second =
-    intention === 'friend'
-      ? `Your interest in making things meets ${profile.tags[0].toLowerCase()} and ${profile.tags[1].toLowerCase()}. Something here to explore together.`
-      : `You both chose Lover in this fictional scenario. ${profile.ritual.title} suggests a low-pressure first conversation.`;
+  const clean = (taste || []).map((s) => String(s)).filter(Boolean).slice(0, 3);
+  let second;
+  if (clean.length) {
+    const hit = overlapTerms(profile, clean);
+    if (hit.length) {
+      second = `Your ${clean.slice(0, 2).join(' and ')} meets ${profile.displayName}’s ${hit.slice(0, 2).join(' and ').toLowerCase()} — a shared shelf to start from.`;
+    } else {
+      second = `You come from ${clean.slice(0, 2).join(' and ')}; ${profile.displayName} lives in ${profile.tags.slice(0, 2).join(' and ').toLowerCase()} — different shelves, but the same habit of following a sound somewhere new.`;
+    }
+  } else {
+    second =
+      intention === 'friend'
+        ? `${profile.displayName}’s ${profile.tags[0].toLowerCase()} and ${profile.tags[1].toLowerCase()} are an open door — curiosity does the rest.`
+        : `You both chose Lover in this fictional scenario. ${profile.ritual.title} suggests a low-pressure first conversation.`;
+  }
   return {
     reasons: [shared, second],
     uncertainty: 'Shared music taste is a starting point. Chemistry, availability and real-world fit are still unknown.',

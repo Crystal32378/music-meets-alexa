@@ -731,10 +731,14 @@ function sleeveHtml(p) {
     '<div>' + p.tags.map(function (x) { return '<span class="tag">' + esc(x) + '</span>'; }).join('') + '</div>';
 }
 function spinRowHtml(tr) {
-  return '<button type="button" class="spinrow" data-preview=\'' + JSON.stringify(tr).replace(/'/g, '&#39;') + '\'>' +
+  return '<button type="button" class="spinrow" data-owner="' + esc(tr.owner || '') + '">' +
     '<span class="disc" aria-hidden="true"></span><span><span class="t">▶ ' + esc(tr.title) + '</span><br><span class="a">' +
     esc(tr.artist) + ' · ' + esc(tr.mood) + ' · ' + tr.bpm + ' bpm</span></span></button>';
 }
+
+/* Taste stopwords: initialized at top level so every handle() call sees them,
+   including the very first input on a fresh page. */
+var TASTE_STOP = ['who', 'the', 'and', 'for', 'with', 'likes', 'like', 'loves', 'love', 'meet', 'find', 'someone', 'into', 'that', 'this', 'please', 'friend', 'lover', 'person', 'people', 'music', 'song', 'songs', 'want', 'looking', 'prefer', 'kind', 'sort', 'type', 'anyone', 'somebody', 'a', 'an', 'me', 'my', 'of', 'on'];
 
 function handle(text) {
   sayYou(text);
@@ -869,7 +873,6 @@ function handle(text) {
   }
 /* Taste search: answer "someone who likes X" from the demo cast itself.
    No separate index to drift — it reads the live roster via get_daily_brief. */
-var TASTE_STOP = ['who', 'the', 'and', 'for', 'with', 'likes', 'like', 'loves', 'love', 'meet', 'find', 'someone', 'into', 'that', 'this', 'please', 'friend', 'lover', 'person', 'people', 'music', 'song', 'songs', 'want', 'looking', 'prefer', 'kind', 'sort', 'type', 'anyone', 'somebody', 'a', 'an', 'me', 'my', 'of', 'on'];
 function tasteSearch(t) {
   var getAll = callTool('get_daily_brief', { intention: 'friend', limit: 6 }).then(function (d) {
     var cards = (d.screen && d.screen.cards) || [];
@@ -891,7 +894,7 @@ function tasteSearch(t) {
     }).filter(function (s) { return s.hits.length > 0; }).slice(0, 3);
     if (!scored.length) {
       var q = words.slice(0, 3).join(' ');
-      var body = sayAlexa('No ' + esc(q) + ' lover in this demo cast of six — I checked everyone. The closest shelves here are vinyl soul and city pop.', 'No ' + q + ' here, I checked all six. Closest: vinyl soul and city pop.', 'voice');
+      var body = sayAlexa('No ' + esc(q) + ' lover in this demo cast of six — I checked everyone. The closest shelves here are vinyl soul and city pop.', 'No ' + q + ' here, I checked all six. Closest: vinyl soul and city pop.', 'voice', null);
       var div = document.createElement('div');
       div.className = 'act';
       div.innerHTML = askBtn('Show today’s brief', 'Brew my ' + ctxIntention + ' listening brief') + askBtn('Play something mellow', 'Play something mellow');
@@ -899,7 +902,7 @@ function tasteSearch(t) {
       return;
     }
     var names = scored.map(function (s) { return s.p.displayName; });
-    var body = sayAlexa(esc(names.join(' and ') + ' match ' + scored[0].hits.join(', ') + ' in this demo cast.'), names.join(' and ') + ' match. Tap a card for the full story.', 'voice');
+    var body = sayAlexa(esc(names.join(' and ') + ' match ' + scored[0].hits.join(', ') + ' in this demo cast.'), names.join(' and ') + ' match. Tap a card for the full story.', 'voice', null);
     var grid = document.createElement('div');
     grid.className = 'sleeves';
     grid.innerHTML = scored.map(function (s) {
