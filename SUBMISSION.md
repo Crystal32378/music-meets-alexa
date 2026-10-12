@@ -38,6 +38,7 @@
 
 - [x] Public GitHub repo + MIT license + `npm run test:mcp`
 - [x] Live demo URL (Render, verified 2026-10-11): https://music-meets-alexa.onrender.com
+- [ ] Oct 24 (after deadline): downgrade Render service back to Free / suspend it — stop the paid meter. Blueprint file stays Starter for now so judges never cold-start.
 - [ ] Record < 3 min video, public YouTube/Vimeo, English
 - [ ] Devpost: repo URL + video + §1 description + §3 friction log + "built Oct 11–23 on top of Coffee Meets Codex" + track = Alexa+
 - [ ] Test on a fresh machine: `npm start` → sim + all 6 tools via Inspector
