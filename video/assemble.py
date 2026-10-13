@@ -5,7 +5,7 @@
 Full-width title (0) and closing (7) cards bookend the 6 content scenes.
 Then burn right-aligned subtitles, mux the soundtrack, encode for YouTube.
 
-Slot lengths sum to 178s (2:58), matching narration/subtitle/music timelines."""
+Slot lengths sum to 171s (2:51), matching narration/subtitle/music timelines."""
 import os, subprocess, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

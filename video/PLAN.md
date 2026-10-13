@@ -1,7 +1,7 @@
 # Demo video — DONE ✅ (B route, fully automated)
 
 **Deliverable:** `video/out/music-meets-alexa-demo.mp4`
-- Duration **2:58** (under 3:00) · 1280×720 · 25fps · H.264 High + AAC 48kHz stereo · 10.6 MB
+- Duration **2:51** (under 3:00) · 1280×720 · 25fps · H.264 High + AAC 48kHz stereo
 - English, narration = Polly **Matthew** (8 segments, `voiceover/mp3/`)
 - Site voice = **Danielle** MP3s (`public/audio/`) + generative loops (`video/audio/*.wav`)
 - Burned-in English subtitles (ASS, Georgia serif, warm box) · bookends preserved:
@@ -17,7 +17,24 @@
 | 5 | 1:30–1:55 | privacy | set up my profile → 4-step → localStorage note | setup_* lines |
 | 6 | 1:55–2:18 | yeses | save interest → confirm → Pending + confetti | save__step1/step2 |
 | 7 | 2:18–2:45 | tech | Terminal: npm start → test:mcp (15 PASS) → tools/list | (terminal) |
-| 8 | 2:45–2:58 | closing | Closing card: repo URL + tagline | Mika loop swell |
+| 8 | 2:45–2:51 | closing | Closing card: repo URL + tagline | Mika loop swell |
+
+## Candidate v2 (music-meets-alexa-demo-candidate.mp4) — pending review
+
+Built from `assemble-candidate.py` + `make-panels-candidate.mjs`. Original kept untouched
+(`out/music-meets-alexa-demo.mp4`). Two changes only, everything else identical:
+
+| # | Change | Why |
+|---|---|---|
+| why seg | Jules → **Mika**, and a `propose_mixtape_opener` step so the 3-track list shows on screen when the narration says "three-track mixtape" | Murphy fresh-eye: unexplained Jules/Mika switching; narration promised a tracklist the picture never showed |
+| hear panel | "…WebAudio synthesized · **zero copyright risk**" → "**Original music, synthesized live in your browser with WebAudio**" | Unverifiable marketing claim → concrete, checkable (matches `data/profiles.js` `previewTone` WebAudio synth) |
+
+- why slot stays **22s**; new `raw/why-mika.webm` is 23.8s so it is **trimmed** (not slowed),
+  landing the mixtape ~6.7s in ≈ 67.7s absolute — aligned to the narration line at 1:07–1:12.
+- Total still **2:51**. Danielle mix voice (`mix__demo-mika__friend.mp3`, 9s) intentionally
+  NOT added to the audio spine — the 3 songs are a *visual* payoff under the Matthew narration;
+  adding it would push past the 83s why window (and is why no timeline extension was needed).
+- yeses untouched (already shows the two-yes → Pending flow).
 
 ## How it was built (reproducible)
 Muse's two pitfalls handled: **(1)** Playwright records silent video, so the generative
